@@ -1,0 +1,25 @@
+import 'package:quanthex_admin/data/datasources/mining_remote_datasource.dart';
+import '../domain/models/mining_record_model.dart';
+import '../domain/models/paginated_response.dart';
+
+class MiningRepository {
+  final MiningRemoteDataSource _remoteDataSource;
+
+  MiningRepository(this._remoteDataSource);
+
+  Future<PaginatedResponse<MiningRecordModel>> getAllMinings({
+    required int offset,
+    required int limit,
+    String? packageName,
+    int? startDate,
+    int? endDate,
+  }) {
+    return _remoteDataSource.getAllMinings(
+      offset: offset,
+      limit: limit,
+      packageName: packageName,
+      startDate: startDate,
+      endDate: endDate,
+    );
+  }
+}
