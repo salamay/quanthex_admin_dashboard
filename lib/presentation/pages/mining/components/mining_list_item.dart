@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import 'package:quanthex_admin/core/router/app_router.dart';
 import 'package:quanthex_admin/core/theme/app_colors.dart';
+import 'package:quanthex_admin/presentation/providers/balance_controller.dart';
 import 'mining_status_badge.dart';
 import 'mining_info_row.dart';
 import 'package:intl/intl.dart';
@@ -161,15 +163,21 @@ class MiningListItem extends StatelessWidget {
               value: _formatDate(mining?.minCreatedAt),
             ),
 
-            // Earnings section
+            // Earnings section (converted from USDT to DOGE)
             SizedBox(height: 12),
             Divider(color: AppColors.divider, height: 1),
             SizedBox(height: 12),
-            _EarningsSection(
-              directEarning: record.earnings.directEarning,
-              indirectEarning: record.earnings.indirectEarning,
-              totalEarning: record.earnings.totalEarning,
-              rewardSymbol: subscription?.subRewardAssetSymbol ?? '',
+            Builder(
+              builder: (ctx) {
+                final dogePrice = ctx.read<BalanceController>().priceQuotes['DOGE'];
+                final canConvert = dogePrice != null && dogePrice > 0;
+                return _EarningsSection(
+                  directEarning: canConvert ? record.earnings.directEarning / dogePrice : record.earnings.directEarning,
+                  indirectEarning: canConvert ? record.earnings.indirectEarning / dogePrice : record.earnings.indirectEarning,
+                  totalEarning: canConvert ? record.earnings.totalEarning / dogePrice : record.earnings.totalEarning,
+                  rewardSymbol: canConvert ? 'DOGE' : (subscription?.subRewardAssetSymbol ?? ''),
+                );
+              },
             ),
 
             // Eligibility tag

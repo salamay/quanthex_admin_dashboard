@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:quanthex_admin/data/repositories/staking_repository.dart';
 import '../../data/domain/models/staking_settings_model.dart';
+import '../../data/domain/models/daily_roi_settings_model.dart';
 
 class StakingSettingsProvider extends ChangeNotifier {
   final StakingRepository _repository;
@@ -11,8 +12,14 @@ class StakingSettingsProvider extends ChangeNotifier {
   List<StakingSettingsModel> _settings = [];
   List<StakingSettingsModel> get settings => _settings;
 
+  DailyRoiSettingsModel? _dailyRoi;
+  DailyRoiSettingsModel? get dailyRoi => _dailyRoi;
+
   bool _isLoading = false;
   bool get isLoading => _isLoading;
+
+  bool _isDailyRoiLoading = false;
+  bool get isDailyRoiLoading => _isDailyRoiLoading;
 
   bool _hasError = false;
   bool get hasError => _hasError;
@@ -29,6 +36,7 @@ class StakingSettingsProvider extends ChangeNotifier {
 
     try {
       _settings = await _repository.getStakingSettings();
+      _dailyRoi = await _repository.getDailyRoiSettings();
       _hasError = false;
       _errorMessage = '';
     } catch (e) {
@@ -64,6 +72,28 @@ class StakingSettingsProvider extends ChangeNotifier {
     } catch (e) {
       log('Error updating staking setting: $e');
       return false;
+    }
+  }
+
+  Future<bool> updateDailyRoi({
+    double? dailyRoiPercentage,
+    bool? isActive,
+  }) async {
+    _isDailyRoiLoading = true;
+    notifyListeners();
+
+    try {
+      _dailyRoi = await _repository.updateDailyRoiSettings(
+        dailyRoiPercentage: dailyRoiPercentage,
+        isActive: isActive,
+      );
+      return true;
+    } catch (e) {
+      log('Error updating daily ROI: $e');
+      return false;
+    } finally {
+      _isDailyRoiLoading = false;
+      notifyListeners();
     }
   }
 }

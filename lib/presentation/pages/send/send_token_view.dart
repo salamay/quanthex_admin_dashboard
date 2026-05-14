@@ -50,6 +50,7 @@ class _SendTokenViewState extends State<SendTokenView> {
     _selectedChain = widget.coin.networkModel!;
     balanceController = Provider.of<BalanceController>(context, listen: false);
     // Pre-fill from mining record if provided (admin pay flow)
+    // Convert USDT earning to DOGE using market price
     if (widget.miningRecord != null) {
       final record = widget.miningRecord!;
       final walletAddress = record.mining?.miningWalletAddress ?? '';
@@ -59,7 +60,11 @@ class _SendTokenViewState extends State<SendTokenView> {
       }
       final totalEarning = record.earnings.totalEarning;
       if (totalEarning > 0) {
-        _amountController.text = totalEarning.toStringAsFixed(4);
+        final dogePrice = balanceController.priceQuotes['DOGE'];
+        final dogeAmount = (dogePrice != null && dogePrice > 0)
+            ? totalEarning / dogePrice
+            : totalEarning;
+        _amountController.text = dogeAmount.toStringAsFixed(4);
       }
     }
     // Pre-fill from staking record if provided (admin staking pay flow)

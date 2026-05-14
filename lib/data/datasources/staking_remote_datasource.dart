@@ -3,6 +3,8 @@ import 'package:quanthex_admin/core/network/api_client.dart';
 import 'package:quanthex_admin/core/network/api_constants.dart';
 import '../domain/models/staking_record_model.dart';
 import '../domain/models/staking_settings_model.dart';
+import '../domain/models/staking_payment_model.dart';
+import '../domain/models/daily_roi_settings_model.dart';
 import '../domain/models/upline_payment_model.dart';
 import '../domain/models/paginated_response.dart';
 
@@ -194,6 +196,50 @@ class StakingRemoteDataSource {
     }
   }
 
+  Future<PaginatedResponse<StakingPaymentModel>> getStakingPayments({
+    required int offset,
+    required int limit,
+    String? status,
+    String? planName,
+    String? email,
+    int? startDate,
+    int? endDate,
+  }) async {
+    try {
+      final queryParams = <String, dynamic>{
+        'offset': offset.toString(),
+        'limit': limit.toString(),
+      };
+      if (status != null && status.isNotEmpty) queryParams['status'] = status;
+      if (planName != null && planName.isNotEmpty) queryParams['planName'] = planName;
+      if (email != null && email.isNotEmpty) queryParams['email'] = email;
+      if (startDate != null) queryParams['startDate'] = startDate.toString();
+      if (endDate != null) queryParams['endDate'] = endDate.toString();
+
+      final response = await _apiClient.get(
+        ApiConstants.stakingPayments,
+        queryParams: queryParams,
+      );
+
+      if (response == null || response.statusCode != 200) {
+        throw Exception('Failed to fetch staking payments: ${response?.statusCode}');
+      }
+
+      final responseData = response.data;
+      final List<dynamic> dataList = responseData['data'] ?? [];
+      final int total = responseData['total'] ?? 0;
+
+      final payments = dataList
+          .map((item) => StakingPaymentModel.fromJson(item as Map<String, dynamic>))
+          .toList();
+
+      return PaginatedResponse(data: payments, total: total);
+    } catch (e) {
+      log('Error fetching staking payments: $e');
+      rethrow;
+    }
+  }
+
   Future<Map<String, dynamic>> submitUplinePayment({
     required String supId,
     required int chainId,
@@ -221,6 +267,62 @@ class StakingRemoteDataSource {
           : (response.data['data'] as Map<String, dynamic>?) ?? {};
     } catch (e) {
       log('Error submitting upline payment: $e');
+      rethrow;
+    }
+  }
+
+  Future<DailyRoiSettingsModel?> getDailyRoiSettings() async {
+    try {
+      final response = await _apiClient.get(ApiConstants.dailyRoiSettings);
+
+      if (response == null || response.statusCode != 200) {
+        throw Exception('Failed to fetch daily ROI settings: ${response?.statusCode}');
+      }
+
+      final responseData = response.data;
+      // The response might be wrapped in { data: ... } or be the object directly
+      final Map<String, dynamic>? data = responseData is Map<String, dynamic>
+          ? (responseData.containsKey('data') && responseData['data'] is Map<String, dynamic>
+              ? responseData['data'] as Map<String, dynamic>
+              : responseData)
+          : null;
+
+      if (data == null || data.isEmpty) return null;
+      return DailyRoiSettingsModel.fromJson(data);
+    } catch (e) {
+      log('Error fetching daily ROI settings: $e');
+      rethrow;
+    }
+  }
+
+  Future<DailyRoiSettingsModel> updateDailyRoiSettings({
+    double? dailyRoiPercentage,
+    bool? isActive,
+  }) async {
+    try {
+      final body = <String, dynamic>{};
+      if (dailyRoiPercentage != null) body['dr_daily_roi_percentage'] = dailyRoiPercentage;
+      if (isActive != null) body['dr_is_active'] = isActive;
+
+      final response = await _apiClient.put(
+        ApiConstants.dailyRoiSettings,
+        data: body,
+      );
+
+      if (response == null || (response.statusCode != 200 && response.statusCode != 201)) {
+        throw Exception('Failed to update daily ROI settings');
+      }
+
+      final responseData = response.data;
+      final Map<String, dynamic> data = responseData is Map<String, dynamic>
+          ? (responseData.containsKey('data') && responseData['data'] is Map<String, dynamic>
+              ? responseData['data'] as Map<String, dynamic>
+              : responseData)
+          : {};
+
+      return DailyRoiSettingsModel.fromJson(data);
+    } catch (e) {
+      log('Error updating daily ROI settings: $e');
       rethrow;
     }
   }

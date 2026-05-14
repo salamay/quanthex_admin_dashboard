@@ -3,13 +3,17 @@ import 'package:go_router/go_router.dart';
 import 'package:quanthex_admin/data/domain/entities/supported_assets.dart';
 import 'package:quanthex_admin/data/domain/models/mining_record_model.dart';
 import 'package:quanthex_admin/data/domain/models/staking_record_model.dart';
+import 'package:quanthex_admin/data/domain/models/mining_payment_model.dart';
+import 'package:quanthex_admin/data/domain/models/staking_payment_model.dart';
 import 'package:quanthex_admin/data/domain/models/upline_payment_model.dart';
 import 'package:quanthex_admin/presentation/pages/splash_page.dart';
 import 'package:quanthex_admin/presentation/pages/auth/sign_in_page.dart';
 import 'package:quanthex_admin/presentation/pages/wallets/import_wallet_page.dart';
 import 'package:quanthex_admin/presentation/pages/home_page.dart';
 import 'package:quanthex_admin/presentation/pages/mining/mining_detail_page.dart';
+import 'package:quanthex_admin/presentation/pages/mining/mining_transaction_detail_page.dart';
 import 'package:quanthex_admin/presentation/pages/staking/staking_detail_page.dart';
+import 'package:quanthex_admin/presentation/pages/staking/staking_transaction_detail_page.dart';
 import 'package:quanthex_admin/presentation/pages/send/send_token_view.dart';
 import 'package:quanthex_admin/presentation/pages/staking/upline_payment_detail_page.dart';
 
@@ -25,6 +29,8 @@ class AppRoutes {
   static const String stakingDetail = '/staking-detail';
   static const String sendToken = '/send-token';
   static const String uplinePaymentDetail = '/upline-payment-detail';
+  static const String miningPaymentDetail = '/mining-payment-detail';
+  static const String stakingPaymentDetail = '/staking-payment-detail';
 }
 
 class AppRouter {
@@ -92,6 +98,22 @@ class AppRouter {
         builder: (context, state) {
           final payment = state.extra as UplinePaymentModel;
           return UplinePaymentDetailPage(payment: payment);
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.miningPaymentDetail,
+        name: 'miningPaymentDetail',
+        builder: (context, state) {
+          final payment = state.extra as MiningPaymentModel;
+          return MiningTransactionDetailPage(payment: payment);
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.stakingPaymentDetail,
+        name: 'stakingPaymentDetail',
+        builder: (context, state) {
+          final payment = state.extra as StakingPaymentModel;
+          return StakingTransactionDetailPage(payment: payment);
         },
       ),
     ],

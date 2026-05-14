@@ -13,6 +13,8 @@ import 'package:quanthex_admin/presentation/providers/mining_provider.dart';
 import 'package:quanthex_admin/presentation/providers/staking_provider.dart';
 import 'package:quanthex_admin/presentation/providers/staking_settings_provider.dart';
 import 'package:quanthex_admin/presentation/providers/upline_payments_provider.dart';
+import 'package:quanthex_admin/presentation/providers/mining_payments_provider.dart';
+import 'package:quanthex_admin/presentation/providers/staking_payments_provider.dart';
 
 import '../../presentation/providers/asset_controllers.dart';
 import '../../presentation/providers/balance_controller.dart';
@@ -82,5 +84,13 @@ class ServiceLocator {
   }
   WalletController createWalletController() {
     return WalletController(secureStorage);
+  }
+
+  MiningPaymentsProvider createMiningPaymentsProvider() {
+    return MiningPaymentsProvider(miningRepository);
+  }
+
+  StakingPaymentsProvider createStakingPaymentsProvider() {
+    return StakingPaymentsProvider(stakingRepository);
   }
 }

@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:quanthex_admin/core/router/app_router.dart';
 import 'package:quanthex_admin/core/theme/app_colors.dart';
 import 'package:quanthex_admin/presentation/providers/asset_controllers.dart';
+import 'package:quanthex_admin/presentation/providers/balance_controller.dart';
 import 'package:quanthex_admin/presentation/providers/mining_provider.dart';
 import 'package:quanthex_admin/data/domain/models/mining_record_model.dart';
 import 'components/header_card.dart';
@@ -66,6 +67,14 @@ class MiningDetailPage extends StatelessWidget {
     final earnings = record.earnings;
     final rewardSymbol = subscription?.subRewardAssetSymbol ?? '';
 
+    // Convert USDT earnings to DOGE using market price
+    final dogePrice = context.read<BalanceController>().priceQuotes['DOGE'];
+    final canConvert = dogePrice != null && dogePrice > 0;
+    final displayDirect = canConvert ? earnings.directEarning / dogePrice : earnings.directEarning;
+    final displayIndirect = canConvert ? earnings.indirectEarning / dogePrice : earnings.indirectEarning;
+    final displayTotal = canConvert ? earnings.totalEarning / dogePrice : earnings.totalEarning;
+    final displaySymbol = canConvert ? 'DOGE' : rewardSymbol;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -106,10 +115,10 @@ class MiningDetailPage extends StatelessWidget {
             const SizedBox(height: 16),
 
             EarningsCard(
-              directEarning: earnings.directEarning,
-              indirectEarning: earnings.indirectEarning,
-              totalEarning: earnings.totalEarning,
-              rewardSymbol: rewardSymbol,
+              directEarning: displayDirect,
+              indirectEarning: displayIndirect,
+              totalEarning: displayTotal,
+              rewardSymbol: displaySymbol,
             ),
             const SizedBox(height: 16),
 
@@ -229,7 +238,7 @@ class MiningDetailPage extends StatelessWidget {
                     Icon(Icons.payment, size: 20),
                     const SizedBox(width: 8),
                     Text(
-                      _getPayButtonText(record, earnings.totalEarning, rewardSymbol),
+                      _getPayButtonText(record, displayTotal, displaySymbol),
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,

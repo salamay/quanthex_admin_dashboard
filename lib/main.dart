@@ -53,6 +53,12 @@ class QuanthexAdminApp extends StatelessWidget {
             ChangeNotifierProvider(
               create: (_) => ServiceLocator.instance.createUplinePaymentsProvider(),
             ),
+            ChangeNotifierProvider(
+              create: (_) => ServiceLocator.instance.createMiningPaymentsProvider(),
+            ),
+            ChangeNotifierProvider(
+              create: (_) => ServiceLocator.instance.createStakingPaymentsProvider(),
+            ),
           ],
           child: GlobalLoaderOverlay(
             overlayColor: Colors.transparent,

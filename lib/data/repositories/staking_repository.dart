@@ -1,6 +1,8 @@
 import 'package:quanthex_admin/data/datasources/staking_remote_datasource.dart';
 import '../domain/models/staking_record_model.dart';
 import '../domain/models/staking_settings_model.dart';
+import '../domain/models/staking_payment_model.dart';
+import '../domain/models/daily_roi_settings_model.dart';
 import '../domain/models/upline_payment_model.dart';
 import '../domain/models/paginated_response.dart';
 
@@ -59,6 +61,26 @@ class StakingRepository {
     );
   }
 
+  Future<PaginatedResponse<StakingPaymentModel>> getStakingPayments({
+    required int offset,
+    required int limit,
+    String? status,
+    String? planName,
+    String? email,
+    int? startDate,
+    int? endDate,
+  }) {
+    return _remoteDataSource.getStakingPayments(
+      offset: offset,
+      limit: limit,
+      status: status,
+      planName: planName,
+      email: email,
+      startDate: startDate,
+      endDate: endDate,
+    );
+  }
+
   Future<Map<String, dynamic>> submitUplinePayment({
     required String supId,
     required int chainId,
@@ -68,6 +90,20 @@ class StakingRepository {
       supId: supId,
       chainId: chainId,
       txData: txData,
+    );
+  }
+
+  Future<DailyRoiSettingsModel?> getDailyRoiSettings() {
+    return _remoteDataSource.getDailyRoiSettings();
+  }
+
+  Future<DailyRoiSettingsModel> updateDailyRoiSettings({
+    double? dailyRoiPercentage,
+    bool? isActive,
+  }) {
+    return _remoteDataSource.updateDailyRoiSettings(
+      dailyRoiPercentage: dailyRoiPercentage,
+      isActive: isActive,
     );
   }
 }

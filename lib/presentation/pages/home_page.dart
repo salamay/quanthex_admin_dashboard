@@ -10,8 +10,10 @@ import 'package:quanthex_admin/presentation/pages/mining/minings_page.dart';
 import 'package:quanthex_admin/presentation/pages/staking/stakings_view.dart';
 import 'package:quanthex_admin/presentation/pages/staking/staking_settings_page.dart';
 import 'package:quanthex_admin/presentation/pages/staking/upline_payments_view.dart';
+import 'package:quanthex_admin/presentation/pages/mining/mining_transactions_view.dart';
+import 'package:quanthex_admin/presentation/pages/staking/staking_transactions_view.dart';
 
-enum DrawerItem { walletOverview, minings, stakings, stakingSettings, uplinePayments }
+enum DrawerItem { walletOverview, minings, stakings, stakingSettings, uplinePayments, miningTransactions, stakingTransactions }
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -36,6 +38,10 @@ class _HomePageState extends State<HomePage> {
         return 'Staking Settings';
       case DrawerItem.uplinePayments:
         return 'Upline Payments';
+      case DrawerItem.miningTransactions:
+        return 'Mining Transactions';
+      case DrawerItem.stakingTransactions:
+        return 'Staking Transactions';
     }
   }
 
@@ -211,6 +217,30 @@ class _HomePageState extends State<HomePage> {
               label: 'Upline Payments',
               item: DrawerItem.uplinePayments,
             ),
+            const SizedBox(height: 8),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Text(
+                'TRANSACTIONS',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textTertiary,
+                  letterSpacing: 1,
+                ),
+              ),
+            ),
+            const SizedBox(height: 4),
+            _buildNavItem(
+              icon: Icons.receipt_long_outlined,
+              label: 'Mining Transactions',
+              item: DrawerItem.miningTransactions,
+            ),
+            _buildNavItem(
+              icon: Icons.receipt_outlined,
+              label: 'Staking Transactions',
+              item: DrawerItem.stakingTransactions,
+            ),
             const Spacer(),
             _buildWalletInfoCard(),
             const SizedBox(height: 8),
@@ -295,6 +325,30 @@ class _HomePageState extends State<HomePage> {
               icon: Icons.people_outline_rounded,
               label: 'Upline Payments',
               item: DrawerItem.uplinePayments,
+            ),
+            const SizedBox(height: 8),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Text(
+                'TRANSACTIONS',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textTertiary,
+                  letterSpacing: 1,
+                ),
+              ),
+            ),
+            const SizedBox(height: 4),
+            _buildDrawerTile(
+              icon: Icons.receipt_long_outlined,
+              label: 'Mining Transactions',
+              item: DrawerItem.miningTransactions,
+            ),
+            _buildDrawerTile(
+              icon: Icons.receipt_outlined,
+              label: 'Staking Transactions',
+              item: DrawerItem.stakingTransactions,
             ),
             const Spacer(),
             _buildWalletInfoCard(),
@@ -415,6 +469,10 @@ class _HomePageState extends State<HomePage> {
         return const StakingSettingsView();
       case DrawerItem.uplinePayments:
         return const UplinePaymentsView();
+      case DrawerItem.miningTransactions:
+        return const MiningTransactionsView();
+      case DrawerItem.stakingTransactions:
+        return const StakingTransactionsView();
     }
   }
 }

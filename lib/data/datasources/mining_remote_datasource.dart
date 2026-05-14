@@ -3,6 +3,7 @@ import 'package:quanthex_admin/core/network/api_client.dart';
 import 'package:quanthex_admin/core/network/api_constants.dart';
 
 import '../domain/models/mining_record_model.dart';
+import '../domain/models/mining_payment_model.dart';
 import '../domain/models/paginated_response.dart';
 
 
@@ -93,6 +94,50 @@ class MiningRemoteDataSource {
       return PaginatedResponse(data: minings, total: total, packageNames: packages);
     } catch (e) {
       log('Error fetching minings: $e');
+      rethrow;
+    }
+  }
+
+  Future<PaginatedResponse<MiningPaymentModel>> getMiningPayments({
+    required int offset,
+    required int limit,
+    String? status,
+    String? packageName,
+    String? email,
+    int? startDate,
+    int? endDate,
+  }) async {
+    try {
+      final queryParams = <String, dynamic>{
+        'offset': offset.toString(),
+        'limit': limit.toString(),
+      };
+      if (status != null && status.isNotEmpty) queryParams['status'] = status;
+      if (packageName != null && packageName.isNotEmpty) queryParams['packageName'] = packageName;
+      if (email != null && email.isNotEmpty) queryParams['email'] = email;
+      if (startDate != null) queryParams['startDate'] = startDate.toString();
+      if (endDate != null) queryParams['endDate'] = endDate.toString();
+
+      final response = await _apiClient.get(
+        ApiConstants.miningPayments,
+        queryParams: queryParams,
+      );
+
+      if (response == null || response.statusCode != 200) {
+        throw Exception('Failed to fetch mining payments: ${response?.statusCode}');
+      }
+
+      final responseData = response.data;
+      final List<dynamic> dataList = responseData['data'] ?? [];
+      final int total = responseData['total'] ?? 0;
+
+      final payments = dataList
+          .map((item) => MiningPaymentModel.fromJson(item as Map<String, dynamic>))
+          .toList();
+
+      return PaginatedResponse(data: payments, total: total);
+    } catch (e) {
+      log('Error fetching mining payments: $e');
       rethrow;
     }
   }

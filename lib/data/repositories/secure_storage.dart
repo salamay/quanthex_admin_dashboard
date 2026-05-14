@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:uuid/uuid.dart';
 
@@ -11,6 +12,8 @@ class SecureStorage {
   static SecureStorage? _instance;
   AndroidOptions _getAndroidOptions() =>
       const AndroidOptions(encryptedSharedPreferences: true);
+  WebOptions _getWebOptions() =>
+      const WebOptions(dbName: 'quanthex_admin', publicKey: 'quanthex_admin_key');
   static FlutterSecureStorage? _storage;
   static const wallets_key = 'user_wallets_v1';
   static const current_wallet_key = 'current_wallet_v1';
@@ -29,6 +32,7 @@ class SecureStorage {
     }
     _storage ??= FlutterSecureStorage(
       aOptions: _instance!._getAndroidOptions(),
+      webOptions: _instance!._getWebOptions(),
     );
     return _instance!;
   }

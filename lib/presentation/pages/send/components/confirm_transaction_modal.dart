@@ -32,6 +32,7 @@ import '../../home/components/coin_image.dart';
 
 class ConfirmTransactionModal extends StatelessWidget {
   ConfirmTransactionModal({super.key,required this.sendPayload});
+
   SendPayload sendPayload;
   late SupportedCoin token;
   late NetworkModel chain;
