@@ -15,6 +15,7 @@ import 'package:quanthex_admin/presentation/providers/staking_settings_provider.
 import 'package:quanthex_admin/presentation/providers/upline_payments_provider.dart';
 import 'package:quanthex_admin/presentation/providers/mining_payments_provider.dart';
 import 'package:quanthex_admin/presentation/providers/staking_payments_provider.dart';
+import 'package:quanthex_admin/presentation/providers/daily_roi_provider.dart';
 
 import '../../presentation/providers/asset_controllers.dart';
 import '../../presentation/providers/balance_controller.dart';
@@ -92,5 +93,9 @@ class ServiceLocator {
 
   StakingPaymentsProvider createStakingPaymentsProvider() {
     return StakingPaymentsProvider(stakingRepository);
+  }
+
+  DailyRoiProvider createDailyRoiProvider() {
+    return DailyRoiProvider(stakingRepository);
   }
 }

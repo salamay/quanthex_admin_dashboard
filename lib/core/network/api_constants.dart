@@ -38,4 +38,8 @@ class ApiConstants {
   static String miningPayments = '$baseUrl/products/mining-payments';
   static String stakingPayments = '$baseUrl/products/staking-payments';
   static String dailyRoiSettings = '$baseUrl/products/daily-roi-settings';
+  static String dailyRoiEligible = '$baseUrl/products/daily-roi-eligible';
+  static String dailyRoiPay = '$baseUrl/products/daily-roi-pay';
+  static String dailyRoiPayAll = '$baseUrl/products/daily-roi-pay-all';
+  static String dailyRoiPayments = '$baseUrl/products/daily-roi-payments';
 }

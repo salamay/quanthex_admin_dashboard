@@ -5,6 +5,8 @@ import '../domain/models/staking_record_model.dart';
 import '../domain/models/staking_settings_model.dart';
 import '../domain/models/staking_payment_model.dart';
 import '../domain/models/daily_roi_settings_model.dart';
+import '../domain/models/daily_roi_payment_model.dart';
+import '../domain/models/daily_roi_eligible_model.dart';
 import '../domain/models/upline_payment_model.dart';
 import '../domain/models/paginated_response.dart';
 
@@ -323,6 +325,130 @@ class StakingRemoteDataSource {
       return DailyRoiSettingsModel.fromJson(data);
     } catch (e) {
       log('Error updating daily ROI settings: $e');
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> getDailyRoiEligible() async {
+    try {
+      final response = await _apiClient.get(ApiConstants.dailyRoiEligible);
+
+      if (response == null || response.statusCode != 200) {
+        throw Exception('Failed to fetch daily ROI eligible: ${response?.statusCode}');
+      }
+
+      final responseData = response.data;
+      final List<dynamic> eligibleList = responseData['eligible'] ?? [];
+      final List<dynamic> alreadyPaidList = responseData['alreadyPaid'] ?? [];
+      final double roiPercentage = (responseData['roiPercentage'] ?? 0).toDouble();
+      final double totalPayoutToday = (responseData['totalPayoutToday'] ?? 0).toDouble();
+
+      final eligible = eligibleList
+          .map((item) => DailyRoiEligibleModel.fromJson(item as Map<String, dynamic>))
+          .toList();
+
+      final alreadyPaid = alreadyPaidList
+          .map((item) => DailyRoiEligibleModel.fromJson(item as Map<String, dynamic>))
+          .toList();
+
+      return {
+        'eligible': eligible,
+        'alreadyPaid': alreadyPaid,
+        'roiPercentage': roiPercentage,
+        'totalPayoutToday': totalPayoutToday,
+      };
+    } catch (e) {
+      log('Error fetching daily ROI eligible: $e');
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> payDailyRoi(
+    String stakingId, {
+    required String txData,
+    required int chainId,
+  }) async {
+    try {
+      final response = await _apiClient.post(
+        ApiConstants.dailyRoiPay,
+        data: {
+          'staking_id': stakingId,
+          'tx_data': txData,
+          'chain_id': chainId,
+        },
+      );
+
+      if (response == null || (response.statusCode != 200 && response.statusCode != 201)) {
+        final msg = response?.data?['message'] ?? 'Unknown error';
+        throw Exception('Failed to pay daily ROI: $msg');
+      }
+
+      return response.data is Map<String, dynamic>
+          ? response.data as Map<String, dynamic>
+          : (response.data['data'] as Map<String, dynamic>?) ?? {};
+    } catch (e) {
+      log('Error paying daily ROI: $e');
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> payAllDailyRoi(List<Map<String, dynamic>> items) async {
+    try {
+      final response = await _apiClient.post(
+        ApiConstants.dailyRoiPayAll,
+        data: {'items': items},
+      );
+
+      if (response == null || (response.statusCode != 200 && response.statusCode != 201)) {
+        final msg = response?.data?['message'] ?? 'Unknown error';
+        throw Exception('Failed to pay all daily ROI: $msg');
+      }
+
+      return response.data is Map<String, dynamic>
+          ? response.data as Map<String, dynamic>
+          : {};
+    } catch (e) {
+      log('Error paying all daily ROI: $e');
+      rethrow;
+    }
+  }
+
+  Future<PaginatedResponse<DailyRoiPaymentModel>> getDailyRoiPayments({
+    required int offset,
+    required int limit,
+    String? status,
+    String? email,
+    String? paymentDate,
+  }) async {
+    try {
+      final queryParams = <String, dynamic>{
+        'offset': offset.toString(),
+        'limit': limit.toString(),
+      };
+      if (status != null && status.isNotEmpty) queryParams['status'] = status;
+      if (email != null && email.isNotEmpty) queryParams['email'] = email;
+      if (paymentDate != null && paymentDate.isNotEmpty) queryParams['paymentDate'] = paymentDate;
+
+      final response = await _apiClient.get(
+        ApiConstants.dailyRoiPayments,
+        queryParams: queryParams,
+      );
+
+      if (response == null || response.statusCode != 200) {
+        throw Exception('Failed to fetch daily ROI payments: ${response?.statusCode}');
+      }
+
+      final responseData = response.data;
+      final List<dynamic> dataList = responseData['data'] ?? [];
+      final int total = responseData['total'] ?? 0;
+
+      final payments = dataList
+          .map((item) => DailyRoiPaymentModel.fromJson(item as Map<String, dynamic>))
+          .toList();
+
+      return PaginatedResponse(data: payments, total: total);
+    } catch (e) {
+      log('Error fetching daily ROI payments: $e');
       rethrow;
     }
   }

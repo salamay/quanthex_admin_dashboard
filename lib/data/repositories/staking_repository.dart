@@ -3,6 +3,7 @@ import '../domain/models/staking_record_model.dart';
 import '../domain/models/staking_settings_model.dart';
 import '../domain/models/staking_payment_model.dart';
 import '../domain/models/daily_roi_settings_model.dart';
+import '../domain/models/daily_roi_payment_model.dart';
 import '../domain/models/upline_payment_model.dart';
 import '../domain/models/paginated_response.dart';
 
@@ -104,6 +105,38 @@ class StakingRepository {
     return _remoteDataSource.updateDailyRoiSettings(
       dailyRoiPercentage: dailyRoiPercentage,
       isActive: isActive,
+    );
+  }
+
+  Future<Map<String, dynamic>> getDailyRoiEligible() {
+    return _remoteDataSource.getDailyRoiEligible();
+  }
+
+  Future<Map<String, dynamic>> payDailyRoi(
+    String stakingId, {
+    required String txData,
+    required int chainId,
+  }) {
+    return _remoteDataSource.payDailyRoi(stakingId, txData: txData, chainId: chainId);
+  }
+
+  Future<Map<String, dynamic>> payAllDailyRoi(List<Map<String, dynamic>> items) {
+    return _remoteDataSource.payAllDailyRoi(items);
+  }
+
+  Future<PaginatedResponse<DailyRoiPaymentModel>> getDailyRoiPayments({
+    required int offset,
+    required int limit,
+    String? status,
+    String? email,
+    String? paymentDate,
+  }) {
+    return _remoteDataSource.getDailyRoiPayments(
+      offset: offset,
+      limit: limit,
+      status: status,
+      email: email,
+      paymentDate: paymentDate,
     );
   }
 }

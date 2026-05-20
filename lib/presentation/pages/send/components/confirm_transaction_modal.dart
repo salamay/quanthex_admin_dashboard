@@ -391,7 +391,16 @@ class ConfirmTransactionModal extends StatelessWidget {
           logger("Transaction signed. Submitting to backend...", runtimeType.toString());
 
           // Send signed tx + payment data to backend for on-chain submission
-          if (sendPayload.isUplinePayment) {
+          if (sendPayload.isDailyRoiPayment) {
+            final stakingDatasource = ServiceLocator.instance.stakingRemoteDataSource;
+            final result = await stakingDatasource.payDailyRoi(
+              sendPayload.dailyRoiStakingId!,
+              txData: "0x$signedTx",
+              chainId: network.chainId,
+            );
+            logger("Daily ROI payment submitted via backend: $result", runtimeType.toString());
+            resultId = sendPayload.dailyRoiStakingId!;
+          } else if (sendPayload.isUplinePayment) {
             final stakingDatasource = ServiceLocator.instance.stakingRemoteDataSource;
             final result = await stakingDatasource.submitUplinePayment(
               supId: sendPayload.uplinePaymentId!,

@@ -6,6 +6,7 @@ import 'package:quanthex_admin/data/domain/models/staking_record_model.dart';
 import 'package:quanthex_admin/data/domain/models/mining_payment_model.dart';
 import 'package:quanthex_admin/data/domain/models/staking_payment_model.dart';
 import 'package:quanthex_admin/data/domain/models/upline_payment_model.dart';
+import 'package:quanthex_admin/data/domain/models/daily_roi_eligible_model.dart';
 import 'package:quanthex_admin/presentation/pages/splash_page.dart';
 import 'package:quanthex_admin/presentation/pages/auth/sign_in_page.dart';
 import 'package:quanthex_admin/presentation/pages/wallets/import_wallet_page.dart';
@@ -84,11 +85,13 @@ class AppRouter {
           final miningRecord = data['miningRecord'] as MiningRecordModel?;
           final stakingRecord = data['stakingRecord'] as StakingRecordModel?;
           final uplinePayment = data['uplinePayment'] as UplinePaymentModel?;
+          final dailyRoiEligible = data['dailyRoiEligible'] as DailyRoiEligibleModel?;
           return SendTokenView(
             coin: coin,
             miningRecord: miningRecord,
             stakingRecord: stakingRecord,
             uplinePayment: uplinePayment,
+            dailyRoiEligible: dailyRoiEligible,
           );
         },
       ),

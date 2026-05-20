@@ -12,8 +12,9 @@ import 'package:quanthex_admin/presentation/pages/staking/staking_settings_page.
 import 'package:quanthex_admin/presentation/pages/staking/upline_payments_view.dart';
 import 'package:quanthex_admin/presentation/pages/mining/mining_transactions_view.dart';
 import 'package:quanthex_admin/presentation/pages/staking/staking_transactions_view.dart';
+import 'package:quanthex_admin/presentation/pages/staking/daily_roi_payments_view.dart';
 
-enum DrawerItem { walletOverview, minings, stakings, stakingSettings, uplinePayments, miningTransactions, stakingTransactions }
+enum DrawerItem { walletOverview, minings, stakings, stakingSettings, uplinePayments, dailyRoiPayments, miningTransactions, stakingTransactions }
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -38,6 +39,8 @@ class _HomePageState extends State<HomePage> {
         return 'Staking Settings';
       case DrawerItem.uplinePayments:
         return 'Upline Payments';
+      case DrawerItem.dailyRoiPayments:
+        return 'Daily ROI Payments';
       case DrawerItem.miningTransactions:
         return 'Mining Transactions';
       case DrawerItem.stakingTransactions:
@@ -217,6 +220,11 @@ class _HomePageState extends State<HomePage> {
               label: 'Upline Payments',
               item: DrawerItem.uplinePayments,
             ),
+            _buildNavItem(
+              icon: Icons.trending_up_rounded,
+              label: 'Daily ROI Payments',
+              item: DrawerItem.dailyRoiPayments,
+            ),
             const SizedBox(height: 8),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -325,6 +333,11 @@ class _HomePageState extends State<HomePage> {
               icon: Icons.people_outline_rounded,
               label: 'Upline Payments',
               item: DrawerItem.uplinePayments,
+            ),
+            _buildDrawerTile(
+              icon: Icons.trending_up_rounded,
+              label: 'Daily ROI Payments',
+              item: DrawerItem.dailyRoiPayments,
             ),
             const SizedBox(height: 8),
             Padding(
@@ -469,6 +482,8 @@ class _HomePageState extends State<HomePage> {
         return const StakingSettingsView();
       case DrawerItem.uplinePayments:
         return const UplinePaymentsView();
+      case DrawerItem.dailyRoiPayments:
+        return const DailyRoiPaymentsView();
       case DrawerItem.miningTransactions:
         return const MiningTransactionsView();
       case DrawerItem.stakingTransactions:

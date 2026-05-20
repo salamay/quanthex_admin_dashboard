@@ -8,6 +8,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../data/domain/models/mining_record_model.dart';
 import '../../../data/domain/models/staking_record_model.dart';
 import '../../../data/domain/models/upline_payment_model.dart';
+import '../../../data/domain/models/daily_roi_eligible_model.dart';
 import '../../../data/domain/entities/network_model.dart';
 import '../../../data/domain/entities/supported_assets.dart';
 import '../../../data/domain/models/balance/CoinBalance.dart';
@@ -25,12 +26,13 @@ import '../home/components/coin_image.dart';
 import 'components/confirm_transaction_modal.dart';
 
 class SendTokenView extends StatefulWidget {
-  SendTokenView({super.key, required this.coin, this.miningRecord, this.stakingRecord, this.uplinePayment});
+  SendTokenView({super.key, required this.coin, this.miningRecord, this.stakingRecord, this.uplinePayment, this.dailyRoiEligible});
 
   SupportedCoin coin;
   final MiningRecordModel? miningRecord;
   final StakingRecordModel? stakingRecord;
   final UplinePaymentModel? uplinePayment;
+  final DailyRoiEligibleModel? dailyRoiEligible;
   @override
   State<SendTokenView> createState() => _SendTokenViewState();
 }
@@ -90,6 +92,24 @@ class _SendTokenViewState extends State<SendTokenView> {
       }
       if (up.amount > 0) {
         _amountController.text = up.amount.toStringAsFixed(4);
+      }
+    }
+    // Pre-fill from daily ROI eligible model (admin daily ROI pay flow)
+    if (widget.dailyRoiEligible != null) {
+      final eligible = widget.dailyRoiEligible!;
+      final walletAddress = eligible.stakingWalletAddress;
+      if (walletAddress.isNotEmpty) {
+        _addressController.text = walletAddress;
+        _validateAddress(walletAddress);
+      }
+      if (eligible.payoutAmount > 0) {
+        // Convert fiat payout to token amount using market price
+        final rewardSymbol = eligible.stakingRewardAssetSymbol.toUpperCase();
+        final tokenPrice = balanceController.priceQuotes[rewardSymbol];
+        final tokenAmount = (tokenPrice != null && tokenPrice > 0)
+            ? eligible.payoutAmount / tokenPrice
+            : eligible.payoutAmount;
+        _amountController.text = tokenAmount.toStringAsFixed(4);
       }
     }
 
@@ -246,6 +266,54 @@ class _SendTokenViewState extends State<SendTokenView> {
                           const SizedBox(height: 2),
                           Text(
                             'Referrals: ${widget.stakingRecord!.referralCount} | Cycle: ${widget.stakingRecord!.paymentStatus.nextCycle}',
+                            style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                          ),
+                        ],
+                      ),
+                    ),
+                    16.verticalSpace,
+                  ],
+
+                  // Daily ROI info banner (when paying from daily ROI)
+                  if (widget.dailyRoiEligible != null) ...[
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: Colors.teal.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.teal.withOpacity(0.3)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.trending_up_rounded, size: 16, color: Colors.teal),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Daily ROI Payment',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.teal.shade800,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'User: ${widget.dailyRoiEligible!.email}',
+                            style: TextStyle(fontSize: 12, color: AppColors.textPrimary),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Plan: ${widget.dailyRoiEligible!.stakingPlan}',
+                            style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Staked: \$${widget.dailyRoiEligible!.stakedAmountFiat.toStringAsFixed(2)} | Payout: \$${widget.dailyRoiEligible!.payoutAmount.toStringAsFixed(2)}',
                             style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
                           ),
                         ],
@@ -542,9 +610,11 @@ class _SendTokenViewState extends State<SendTokenView> {
         minId: widget.miningRecord?.mining?.minId,
         stakingId: widget.stakingRecord?.staking?.stakingId,
         uplinePaymentId: widget.uplinePayment?.supId,
+        dailyRoiStakingId: widget.dailyRoiEligible?.stakingId,
         rewardSymbol: widget.miningRecord?.subscription?.subRewardAssetSymbol
             ?? widget.stakingRecord?.staking?.stakingRewardAssetSymbol
-            ?? widget.uplinePayment?.uplineRewardAssetSymbol,
+            ?? widget.uplinePayment?.uplineRewardAssetSymbol
+            ?? widget.dailyRoiEligible?.stakingRewardAssetSymbol,
       );
       NetworkFee? fee;
       try {
