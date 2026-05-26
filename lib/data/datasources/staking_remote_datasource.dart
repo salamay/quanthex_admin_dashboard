@@ -338,10 +338,10 @@ class StakingRemoteDataSource {
       }
 
       final responseData = response.data;
-      final List<dynamic> eligibleList = responseData['eligible'] ?? [];
-      final List<dynamic> alreadyPaidList = responseData['alreadyPaid'] ?? [];
-      final double roiPercentage = (responseData['roiPercentage'] ?? 0).toDouble();
-      final double totalPayoutToday = (responseData['totalPayoutToday'] ?? 0).toDouble();
+      final List<dynamic> eligibleList = responseData['data']['eligible'] ?? [];
+      final List<dynamic> alreadyPaidList = responseData['data']['alreadyPaid'] ?? [];
+      final double roiPercentage = (responseData['data']['roiPercentage'] ?? 0).toDouble();
+      final double totalPayoutToday = (responseData['data']['totalPayoutToday'] ?? 0).toDouble();
 
       final eligible = eligibleList
           .map((item) => DailyRoiEligibleModel.fromJson(item as Map<String, dynamic>))
@@ -350,7 +350,6 @@ class StakingRemoteDataSource {
       final alreadyPaid = alreadyPaidList
           .map((item) => DailyRoiEligibleModel.fromJson(item as Map<String, dynamic>))
           .toList();
-
       return {
         'eligible': eligible,
         'alreadyPaid': alreadyPaid,

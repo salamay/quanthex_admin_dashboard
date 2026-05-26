@@ -48,6 +48,42 @@ class MiningRemoteDataSource {
     }
   }
 
+  /// Submit a manual mining payment — admin sends any amount of DOGE.
+  Future<Map<String, dynamic>> submitManualPayment({
+    required String minId,
+    required double amount,
+    required int chainId,
+    String? txData,
+    String? rewardSymbol,
+  }) async {
+    try {
+      final body = <String, dynamic>{
+        'min_id': minId,
+        'amount': amount,
+        'chain_id': chainId,
+      };
+      if (txData != null) body['tx_data'] = txData;
+      if (rewardSymbol != null) body['reward_symbol'] = rewardSymbol;
+
+      final response = await _apiClient.post(
+        ApiConstants.manualMiningPayment,
+        data: body,
+      );
+
+      if (response == null || (response.statusCode != 200 && response.statusCode != 201)) {
+        final msg = response?.data?['message'] ?? 'Unknown error';
+        throw Exception('Failed to submit manual payment: $msg');
+      }
+
+      return response.data is Map<String, dynamic>
+          ? response.data as Map<String, dynamic>
+          : (response.data['data'] as Map<String, dynamic>?) ?? {};
+    } catch (e) {
+      log('Error submitting manual payment: $e');
+      rethrow;
+    }
+  }
+
   Future<PaginatedResponse<MiningRecordModel>> getAllMinings({
     required int offset,
     required int limit,

@@ -52,12 +52,10 @@ class MiningDetailPage extends StatelessWidget {
   }
 
   String _getPayButtonText(MiningRecordModel record, double totalEarning, String rewardSymbol) {
-    if (record.paymentStatus.allTiersPaid) return 'Fully Paid';
     if (record.isEligibleForPayment) {
-      return 'Pay ${totalEarning.toStringAsFixed(2)} $rewardSymbol (Tier ${record.paymentStatus.nextTier})';
+      return 'Pay ${totalEarning.toStringAsFixed(2)} $rewardSymbol (Payment #${record.paymentStatus.nextPaymentNumber})';
     }
-    final nextRequired = record.paymentStatus.nextRequiredTier ?? 6;
-    return 'Not Eligible (${record.directReferralCount}/$nextRequired direct referrals)';
+    return 'Not Eligible (need 1 more referral)';
   }
 
   @override
@@ -239,6 +237,67 @@ class MiningDetailPage extends StatelessWidget {
                     const SizedBox(width: 8),
                     Text(
                       _getPayButtonText(record, displayTotal, displaySymbol),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // Manual Pay button
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: OutlinedButton(
+                onPressed: () async {
+                  final sub = record.subscription;
+                  final assetController = context.read<AssetController>();
+                  final rwdSymbol = sub?.subRewardAssetSymbol ?? '';
+                  final coins = assetController.assets.where(
+                    (coin) => coin.symbol.toLowerCase() == rwdSymbol.toLowerCase(),
+                  );
+                  final matchingCoin = coins.isNotEmpty ? coins.first : null;
+
+                  if (matchingCoin == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Reward asset "$rwdSymbol" not found in your wallet assets'),
+                        backgroundColor: AppColors.error,
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                    return;
+                  }
+
+                  final result = await context.push(AppRoutes.sendToken, extra: {
+                    'coin': matchingCoin,
+                    'miningRecord': record,
+                    'isManualMiningPayment': true,
+                  });
+
+                  if (result != null && context.mounted) {
+                    context.read<MiningProvider>().fetchMinings(refresh: true);
+                    if (context.mounted) context.pop();
+                  }
+                },
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.primary,
+                  side: BorderSide(color: AppColors.primary, width: 1.5),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.send_outlined, size: 20),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Manual Pay (Any Amount)',
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,

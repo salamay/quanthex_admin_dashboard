@@ -26,13 +26,14 @@ import '../home/components/coin_image.dart';
 import 'components/confirm_transaction_modal.dart';
 
 class SendTokenView extends StatefulWidget {
-  SendTokenView({super.key, required this.coin, this.miningRecord, this.stakingRecord, this.uplinePayment, this.dailyRoiEligible});
+  SendTokenView({super.key, required this.coin, this.miningRecord, this.stakingRecord, this.uplinePayment, this.dailyRoiEligible, this.isManualMiningPayment = false});
 
   SupportedCoin coin;
   final MiningRecordModel? miningRecord;
   final StakingRecordModel? stakingRecord;
   final UplinePaymentModel? uplinePayment;
   final DailyRoiEligibleModel? dailyRoiEligible;
+  final bool isManualMiningPayment;
   @override
   State<SendTokenView> createState() => _SendTokenViewState();
 }
@@ -60,13 +61,16 @@ class _SendTokenViewState extends State<SendTokenView> {
         _addressController.text = walletAddress;
         _validateAddress(walletAddress);
       }
-      final totalEarning = record.earnings.totalEarning;
-      if (totalEarning > 0) {
-        final dogePrice = balanceController.priceQuotes['DOGE'];
-        final dogeAmount = (dogePrice != null && dogePrice > 0)
-            ? totalEarning / dogePrice
-            : totalEarning;
-        _amountController.text = dogeAmount.toStringAsFixed(4);
+      // Only pre-fill amount for referral-based payments, not manual
+      if (!widget.isManualMiningPayment) {
+        final totalEarning = record.earnings.totalEarning;
+        if (totalEarning > 0) {
+          final dogePrice = balanceController.priceQuotes['DOGE'];
+          final dogeAmount = (dogePrice != null && dogePrice > 0)
+              ? totalEarning / dogePrice
+              : totalEarning;
+          _amountController.text = dogeAmount.toStringAsFixed(4);
+        }
       }
     }
     // Pre-fill from staking record if provided (admin staking pay flow)
@@ -340,7 +344,7 @@ class _SendTokenViewState extends State<SendTokenView> {
                               Icon(Icons.info_outline, size: 16, color: AppColors.primary),
                               const SizedBox(width: 8),
                               Text(
-                                'Mining Payment',
+                                widget.isManualMiningPayment ? 'Manual Mining Payment' : 'Mining Payment',
                                 style: TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w600,
@@ -615,6 +619,7 @@ class _SendTokenViewState extends State<SendTokenView> {
             ?? widget.stakingRecord?.staking?.stakingRewardAssetSymbol
             ?? widget.uplinePayment?.uplineRewardAssetSymbol
             ?? widget.dailyRoiEligible?.stakingRewardAssetSymbol,
+        isManualMiningPayment: widget.isManualMiningPayment,
       );
       NetworkFee? fee;
       try {

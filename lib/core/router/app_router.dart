@@ -86,12 +86,14 @@ class AppRouter {
           final stakingRecord = data['stakingRecord'] as StakingRecordModel?;
           final uplinePayment = data['uplinePayment'] as UplinePaymentModel?;
           final dailyRoiEligible = data['dailyRoiEligible'] as DailyRoiEligibleModel?;
+          final isManualMiningPayment = data['isManualMiningPayment'] as bool? ?? false;
           return SendTokenView(
             coin: coin,
             miningRecord: miningRecord,
             stakingRecord: stakingRecord,
             uplinePayment: uplinePayment,
             dailyRoiEligible: dailyRoiEligible,
+            isManualMiningPayment: isManualMiningPayment,
           );
         },
       ),

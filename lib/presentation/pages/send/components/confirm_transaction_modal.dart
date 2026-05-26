@@ -420,6 +420,17 @@ class ConfirmTransactionModal extends StatelessWidget {
             );
             logger("Staking payment submitted via backend: $result", runtimeType.toString());
             resultId = sendPayload.stakingId!;
+          } else if (sendPayload.isManualMiningPayment) {
+            final datasource = ServiceLocator.instance.miningRemoteDataSource;
+            final result = await datasource.submitManualPayment(
+              minId: sendPayload.minId!,
+              amount: sendPayload.amount ?? 0.0,
+              chainId: network.chainId,
+              txData: "0x$signedTx",
+              rewardSymbol: sendPayload.rewardSymbol,
+            );
+            logger("Manual mining payment submitted via backend: $result", runtimeType.toString());
+            resultId = sendPayload.minId!;
           } else {
             final datasource = ServiceLocator.instance.miningRemoteDataSource;
             final result = await datasource.submitPayment(

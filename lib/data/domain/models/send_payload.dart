@@ -18,8 +18,9 @@ class SendPayload{
   String? rewardSymbol; // Reward asset symbol for payment tracking
   String? uplinePaymentId; // Upline payment ID for upline pay flow
   String? dailyRoiStakingId; // Staking ID for daily ROI payment flow
+  bool isManualMiningPayment; // Manual mining payment (any amount, no eligibility check)
 
-  SendPayload({this.asset, this.amount, this.recipient_address, this.fee,this.amountInFiat,this.txId, this.minId, this.stakingId, this.rewardSymbol, this.uplinePaymentId, this.dailyRoiStakingId});
+  SendPayload({this.asset, this.amount, this.recipient_address, this.fee,this.amountInFiat,this.txId, this.minId, this.stakingId, this.rewardSymbol, this.uplinePaymentId, this.dailyRoiStakingId, this.isManualMiningPayment = false});
 
   SendPayload copyWith({
     SupportedCoin? asset,
@@ -35,6 +36,7 @@ class SendPayload{
     String? rewardSymbol,
     String? uplinePaymentId,
     String? dailyRoiStakingId,
+    bool? isManualMiningPayment,
   }){
     return SendPayload(
         asset: asset??this.asset,
@@ -48,6 +50,7 @@ class SendPayload{
         rewardSymbol: rewardSymbol??this.rewardSymbol,
         uplinePaymentId: uplinePaymentId??this.uplinePaymentId,
         dailyRoiStakingId: dailyRoiStakingId??this.dailyRoiStakingId,
+        isManualMiningPayment: isManualMiningPayment??this.isManualMiningPayment,
     );
   }
 

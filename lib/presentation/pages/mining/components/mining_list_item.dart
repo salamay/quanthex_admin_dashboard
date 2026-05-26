@@ -38,12 +38,10 @@ class MiningListItem extends StatelessWidget {
   }
 
   String _getEligibilityText(MiningRecordModel record) {
-    if (record.paymentStatus.allTiersPaid) return 'Fully Paid';
     if (record.isEligibleForPayment) {
-      return 'Eligible (Tier ${record.paymentStatus.nextTier})';
+      return 'Eligible (Payment #${record.paymentStatus.nextPaymentNumber})';
     }
-    final nextRequired = record.paymentStatus.nextRequiredTier ?? 6;
-    return 'Not Eligible (${record.directReferralCount}/$nextRequired referrals)';
+    return 'Not Eligible (need 1 more referral)';
   }
 
   @override
@@ -189,9 +187,7 @@ class MiningListItem extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: record.isEligibleForPayment
                         ? AppColors.statusActiveBackground
-                        : record.paymentStatus.allTiersPaid
-                            ? AppColors.primarySurface
-                            : AppColors.statusPendingBackground,
+                        : AppColors.statusPendingBackground,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(
@@ -200,15 +196,11 @@ class MiningListItem extends StatelessWidget {
                       Icon(
                         record.isEligibleForPayment
                             ? Icons.check_circle_outline
-                            : record.paymentStatus.allTiersPaid
-                                ? Icons.verified
-                                : Icons.info_outline,
+                            : Icons.info_outline,
                         size: 14,
                         color: record.isEligibleForPayment
                             ? AppColors.statusActive
-                            : record.paymentStatus.allTiersPaid
-                                ? AppColors.primary
-                                : AppColors.statusPending,
+                            : AppColors.statusPending,
                       ),
                       const SizedBox(width: 4),
                       Text(
@@ -218,15 +210,13 @@ class MiningListItem extends StatelessWidget {
                           fontWeight: FontWeight.w600,
                           color: record.isEligibleForPayment
                               ? AppColors.statusActive
-                              : record.paymentStatus.allTiersPaid
-                                  ? AppColors.primary
-                                  : AppColors.statusPending,
+                              : AppColors.statusPending,
                         ),
                       ),
                     ],
                   ),
                 ),
-                if (record.paymentStatus.paidTiers.isNotEmpty) ...[
+                if (record.paymentStatus.totalPayments > 0) ...[
                   const SizedBox(width: 6),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
@@ -235,7 +225,7 @@ class MiningListItem extends StatelessWidget {
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
-                      'Paid: ${record.paymentStatus.paidTiers.length}/4 tiers',
+                      '${record.paymentStatus.totalPayments} payments',
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w500,

@@ -24,12 +24,13 @@ class ApiConstants {
   static String avalancheRpc="https://go.getblock.us/26a2bfa624654defa1a3f343262bc62f";
   static String avalancheRpcSocket="wss://go.getblock.io/c1f9505172024d1089b03c83f1a3eae8/ext/bc/C/rpc";
   // Change this to your admin backend base URL
-  static const String baseUrl = 'https://api.quanthex.io/adminapi';
-  // static const String baseUrl = 'http://127.0.0.1:9243/adminapi';
+  // static const String baseUrl = 'https://api.quanthex.io/adminapi';
+  static const String baseUrl = 'http://127.0.0.1:9243/adminapi';
 
   static String login = '$baseUrl/auth/login';
   static String minings = '$baseUrl/products/minings';
   static String submitPayment = '$baseUrl/products/submit-payment';
+  static String manualMiningPayment = '$baseUrl/products/manual-mining-payment';
   static String stakings = '$baseUrl/products/stakings';
   static String stakingSettings = '$baseUrl/products/staking-settings';
   static String submitStakingPayment = '$baseUrl/products/submit-staking-payment';
