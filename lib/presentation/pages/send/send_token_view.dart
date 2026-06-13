@@ -455,7 +455,7 @@ class _SendTokenViewState extends State<SendTokenView> {
                                             Expanded(
                                               child: TextField(
                                                 controller: _amountController,
-                                                enabled: false,
+                                                enabled: true,
                                                 style: TextStyle(color: const Color(0xFF2D2D2D), fontSize: 28, fontFamily: 'Satoshi', fontWeight: FontWeight.w700),
                                                 keyboardType: TextInputType.numberWithOptions(decimal: true),
                                                 textAlign: TextAlign.right,
@@ -642,6 +642,7 @@ class _SendTokenViewState extends State<SendTokenView> {
         }
       }
     } catch (e) {
+      logger(e.toString(), runtimeType.toString());
       hideOverlay(context);
       showMySnackBar(context: context, message: "An error occurred", type: SnackBarType.error);
     }
