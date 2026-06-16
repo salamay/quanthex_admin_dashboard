@@ -57,7 +57,7 @@ class MiningPaymentModel {
   bool get isConfirmed => mpStatus.toLowerCase() == 'confirmed';
   bool get isFailed => mpStatus.toLowerCase() == 'failed';
 
-  String get tierLabel => 'Tier $mpPaymentTier';
+  String get tierLabel => 'Payment #$mpPaymentTier';
 
   factory MiningPaymentModel.fromJson(Map<String, dynamic> json) {
     return MiningPaymentModel(
@@ -67,7 +67,7 @@ class MiningPaymentModel {
       mpSubscriptionId: json['mp_subscription_id'] ?? '',
       mpTxHash: json['mp_tx_hash'],
       mpTxData: json['mp_tx_data'],
-      mpAmount: (json['mp_amount'] ?? 0).toDouble(),
+      mpAmount: (json['mp_amount'] is num) ? (json['mp_amount'] as num).toDouble() : double.tryParse(json['mp_amount']?.toString() ?? '0') ?? 0,
       mpChainId: json['mp_chain_id'] ?? 0,
       mpRewardSymbol: json['mp_reward_symbol'],
       mpPaymentTier: json['mp_payment_tier'] ?? 0,
@@ -87,8 +87,8 @@ class MiningPaymentModel {
       subRewardContract: json['sub_reward_contract'],
       subAssetSymbol: json['sub_asset_symbol'],
       subPrice: json['sub_price'] != null
-          ? (json['sub_price']).toDouble()
-          : null,
+          ? double.parse((json['sub_price']).toString())
+          : 0,
     );
   }
 }

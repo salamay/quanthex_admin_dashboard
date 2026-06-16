@@ -110,6 +110,30 @@ class MiningDetailPage extends StatelessWidget {
             const SizedBox(height: 16),
 
             MiningEligibilityBanner(record: record),
+            const SizedBox(height: 12),
+
+            // View Payments button
+            SizedBox(
+              width: double.infinity,
+              height: 44,
+              child: OutlinedButton.icon(
+                onPressed: () {
+                  context.push(AppRoutes.miningPayments, extra: record);
+                },
+                icon: const Icon(Icons.receipt_long_outlined, size: 18),
+                label: Text(
+                  'View Payment History (${record.paymentStatus.totalPayments})',
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                ),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.primary,
+                  side: const BorderSide(color: AppColors.primary, width: 1),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+            ),
             const SizedBox(height: 16),
 
             EarningsCard(

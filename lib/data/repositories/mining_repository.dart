@@ -32,6 +32,7 @@ class MiningRepository {
     String? email,
     int? startDate,
     int? endDate,
+    String? minId,
   }) {
     return _remoteDataSource.getMiningPayments(
       offset: offset,
@@ -41,6 +42,7 @@ class MiningRepository {
       email: email,
       startDate: startDate,
       endDate: endDate,
+      minId: minId,
     );
   }
 }

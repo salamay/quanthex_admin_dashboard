@@ -142,12 +142,14 @@ class MiningRemoteDataSource {
     String? email,
     int? startDate,
     int? endDate,
+    String? minId,
   }) async {
     try {
       final queryParams = <String, dynamic>{
         'offset': offset.toString(),
         'limit': limit.toString(),
       };
+      if (minId != null && minId.isNotEmpty) queryParams['minId'] = minId;
       if (status != null && status.isNotEmpty) queryParams['status'] = status;
       if (packageName != null && packageName.isNotEmpty) queryParams['packageName'] = packageName;
       if (email != null && email.isNotEmpty) queryParams['email'] = email;
@@ -166,6 +168,7 @@ class MiningRemoteDataSource {
       final responseData = response.data;
       final List<dynamic> dataList = responseData['data'] ?? [];
       final int total = responseData['total'] ?? 0;
+      print(responseData);
 
       final payments = dataList
           .map((item) => MiningPaymentModel.fromJson(item as Map<String, dynamic>))

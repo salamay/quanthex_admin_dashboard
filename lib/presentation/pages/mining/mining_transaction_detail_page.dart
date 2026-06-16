@@ -81,7 +81,7 @@ class MiningTransactionDetailPage extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 MiningInfoRow(
-                  label: 'Tier',
+                  label: 'Payment Number',
                   value: payment.tierLabel,
                 ),
                 const SizedBox(height: 8),

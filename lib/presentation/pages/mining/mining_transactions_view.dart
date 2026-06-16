@@ -409,7 +409,7 @@ class _MiningTransactionsViewState extends State<MiningTransactionsView> {
             const SizedBox(height: 6),
             _buildInfoLine(
               Icons.layers_outlined,
-              'Tier',
+              'Payment #',
               payment.tierLabel,
             ),
             const SizedBox(height: 6),
