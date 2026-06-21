@@ -433,7 +433,7 @@ class _StakingTransactionCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  '\$${payment.spAmount.toStringAsFixed(2)}',
+                  '${payment.spAmount} ${payment.spRewardSymbol}',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,

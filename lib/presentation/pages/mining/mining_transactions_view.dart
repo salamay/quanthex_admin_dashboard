@@ -380,7 +380,7 @@ class _MiningTransactionsViewState extends State<MiningTransactionsView> {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  '\$${payment.mpAmount.toStringAsFixed(2)}',
+                  '${payment.mpAmount} ${payment.subRewardAssetSymbol}',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,

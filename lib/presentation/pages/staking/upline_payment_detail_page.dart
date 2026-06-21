@@ -80,7 +80,7 @@ class UplinePaymentDetailPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    '\$${payment.amount.toStringAsFixed(2)}',
+                    '${payment.amount} ${payment.rewardSymbol}',
                     style: const TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.w800,

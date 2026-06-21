@@ -224,7 +224,7 @@ class MiningTransactionDetailPage extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            '\$${payment.mpAmount.toStringAsFixed(2)}',
+            '${payment.mpAmount} ${payment.mpRewardSymbol}',
             style: const TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.w800,

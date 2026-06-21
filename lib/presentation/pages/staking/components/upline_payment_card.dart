@@ -53,7 +53,7 @@ class UplinePaymentCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        '\$${payment.amount.toStringAsFixed(2)}',
+                        '${payment.amount} ${payment.rewardSymbol}',
                         style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,

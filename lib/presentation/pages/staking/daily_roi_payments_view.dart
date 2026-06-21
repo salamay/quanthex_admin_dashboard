@@ -126,7 +126,7 @@ class _DailyRoiPaymentsViewState extends State<DailyRoiPaymentsView>
               Expanded(
                 child: _SummaryTile(
                   label: 'Total Payout',
-                  value: '\$${provider.totalPayoutToday.toStringAsFixed(2)}',
+                  value: '${provider.totalPayoutToday} USDT',
                   icon: Icons.attach_money,
                   color: AppColors.success,
                 ),
@@ -911,7 +911,7 @@ class _EligibleCard extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                '\$${item.payoutAmount.toStringAsFixed(2)}',
+                '${item.payoutAmount} ${item.stakingRewardAssetSymbol}',
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
@@ -1032,7 +1032,7 @@ class _AlreadyPaidCard extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                '\$${item.payoutAmount.toStringAsFixed(2)}',
+                '${item.payoutAmount} ${item.stakingRewardAssetSymbol}',
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
@@ -1164,7 +1164,7 @@ class _PaymentHistoryCard extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                '\$${payment.payoutAmount.toStringAsFixed(2)}',
+                '${payment.payoutAmount} ${payment.rewardSymbol}',
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,

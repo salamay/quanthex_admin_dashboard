@@ -9,7 +9,6 @@ class ApiConstants {
   static String moralisErc20Transfers="https://deep-index.moralis.io/api/v2.2";
   static String moralisNativeTransfers="https://deep-index.moralis.io/api/v2.2/";
   static String cmcListings="https://pro-api.coinmarketcap.com/v3/cryptocurrency/listings/latest";
-
   // static String BSCRpc="https://bsc-dataseed3.binance.org/";
   static String BSCRpc="https://go.getblock.io/afb9702b784d4b2fa1b1b43290ecf787";
   // static String BSCRpc="https://go.getblock.io/119fad79ee5d4ffda4c3de8fdc77618e";
@@ -24,8 +23,8 @@ class ApiConstants {
   static String avalancheRpc="https://go.getblock.us/26a2bfa624654defa1a3f343262bc62f";
   static String avalancheRpcSocket="wss://go.getblock.io/c1f9505172024d1089b03c83f1a3eae8/ext/bc/C/rpc";
   // Change this to your admin backend base URL
-  static const String baseUrl = 'https://api.quanthex.io/adminapi';
-  // static const String baseUrl = 'http://127.0.0.1:9243/adminapi';
+  // static const String baseUrl = 'https://api.quanthex.io/adminapi';
+  static const String baseUrl = 'http://127.0.0.1:9243/adminapi';
 
   static String login = '$baseUrl/auth/login';
   static String minings = '$baseUrl/products/minings';
@@ -43,4 +42,5 @@ class ApiConstants {
   static String dailyRoiPay = '$baseUrl/products/daily-roi-pay';
   static String dailyRoiPayAll = '$baseUrl/products/daily-roi-pay-all';
   static String dailyRoiPayments = '$baseUrl/products/daily-roi-payments';
+
 }

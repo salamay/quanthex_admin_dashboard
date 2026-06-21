@@ -151,7 +151,7 @@ class StakingTransactionDetailPage extends StatelessWidget {
                 MiningInfoRow(
                   label: 'Staked Amount',
                   value: payment.stakedAmountFiat != null
-                      ? '\$${payment.stakedAmountFiat!.toStringAsFixed(2)}'
+                      ? '${payment.stakedAmountFiat!} ${payment.stakedAssetSymbol}'
                       : 'N/A',
                 ),
                 const SizedBox(height: 8),
