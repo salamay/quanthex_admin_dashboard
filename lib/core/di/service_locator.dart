@@ -3,10 +3,12 @@ import 'package:quanthex_admin/presentation/providers/wallet_controller.dart';
 import 'package:quanthex_admin/data/datasources/auth_remote_datasource.dart';
 import 'package:quanthex_admin/data/datasources/mining_remote_datasource.dart';
 import 'package:quanthex_admin/data/datasources/staking_remote_datasource.dart';
+import 'package:quanthex_admin/data/datasources/user_remote_datasource.dart';
 import 'package:quanthex_admin/data/local/token_storage.dart';
 import 'package:quanthex_admin/data/repositories/auth_repository.dart';
 import 'package:quanthex_admin/data/repositories/mining_repository.dart';
 import 'package:quanthex_admin/data/repositories/staking_repository.dart';
+import 'package:quanthex_admin/data/repositories/user_repository.dart';
 import 'package:quanthex_admin/data/repositories/secure_storage.dart';
 import 'package:quanthex_admin/presentation/providers/auth_provider.dart';
 import 'package:quanthex_admin/presentation/providers/mining_provider.dart';
@@ -16,6 +18,7 @@ import 'package:quanthex_admin/presentation/providers/upline_payments_provider.d
 import 'package:quanthex_admin/presentation/providers/mining_payments_provider.dart';
 import 'package:quanthex_admin/presentation/providers/staking_payments_provider.dart';
 import 'package:quanthex_admin/presentation/providers/daily_roi_provider.dart';
+import 'package:quanthex_admin/presentation/providers/users_provider.dart';
 
 import '../../presentation/providers/asset_controllers.dart';
 import '../../presentation/providers/balance_controller.dart';
@@ -40,6 +43,10 @@ class ServiceLocator {
   late final StakingRemoteDataSource stakingRemoteDataSource;
   late final StakingRepository stakingRepository;
 
+  // Users
+  late final UserRemoteDataSource userRemoteDataSource;
+  late final UserRepository userRepository;
+
   late final SecureStorage secureStorage;
 
   void init() {
@@ -55,6 +62,9 @@ class ServiceLocator {
 
     stakingRemoteDataSource = StakingRemoteDataSource(apiClient);
     stakingRepository = StakingRepository(stakingRemoteDataSource);
+
+    userRemoteDataSource = UserRemoteDataSource(apiClient);
+    userRepository = UserRepository(userRemoteDataSource);
   }
 
   AuthProvider createAuthProvider() {
@@ -97,5 +107,9 @@ class ServiceLocator {
 
   DailyRoiProvider createDailyRoiProvider() {
     return DailyRoiProvider(stakingRepository);
+  }
+
+  UsersProvider createUsersProvider() {
+    return UsersProvider(userRepository);
   }
 }

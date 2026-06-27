@@ -13,8 +13,9 @@ import 'package:quanthex_admin/presentation/pages/staking/upline_payments_view.d
 import 'package:quanthex_admin/presentation/pages/mining/mining_transactions_view.dart';
 import 'package:quanthex_admin/presentation/pages/staking/staking_transactions_view.dart';
 import 'package:quanthex_admin/presentation/pages/staking/daily_roi_payments_view.dart';
+import 'package:quanthex_admin/presentation/pages/users/users_view.dart';
 
-enum DrawerItem { walletOverview, minings, stakings, stakingSettings, uplinePayments, dailyRoiPayments, miningTransactions, stakingTransactions }
+enum DrawerItem { users, walletOverview, minings, stakings, stakingSettings, uplinePayments, dailyRoiPayments, miningTransactions, stakingTransactions }
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -29,6 +30,8 @@ class _HomePageState extends State<HomePage> {
 
   String get _title {
     switch (_selectedItem) {
+      case DrawerItem.users:
+        return 'All Users';
       case DrawerItem.walletOverview:
         return 'Wallet Overview';
       case DrawerItem.minings:
@@ -196,6 +199,11 @@ class _HomePageState extends State<HomePage> {
             Container(height: 1, color: AppColors.border),
             const SizedBox(height: 8),
             _buildNavItem(
+              icon: Icons.people_rounded,
+              label: 'Users',
+              item: DrawerItem.users,
+            ),
+            _buildNavItem(
               icon: Icons.account_balance_wallet_outlined,
               label: 'Wallet Overview',
               item: DrawerItem.walletOverview,
@@ -309,6 +317,11 @@ class _HomePageState extends State<HomePage> {
             _buildBrandHeader(),
             Container(height: 1, color: AppColors.border),
             const SizedBox(height: 8),
+            _buildDrawerTile(
+              icon: Icons.people_rounded,
+              label: 'Users',
+              item: DrawerItem.users,
+            ),
             _buildDrawerTile(
               icon: Icons.account_balance_wallet_outlined,
               label: 'Wallet Overview',
@@ -472,6 +485,8 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildBody() {
     switch (_selectedItem) {
+      case DrawerItem.users:
+        return const UsersView();
       case DrawerItem.walletOverview:
         return const HomeView();
       case DrawerItem.minings:

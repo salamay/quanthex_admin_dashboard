@@ -71,6 +71,9 @@ class _QuanthexAdminAppState extends State<QuanthexAdminApp> {
             ChangeNotifierProvider(
               create: (_) => ServiceLocator.instance.createDailyRoiProvider(),
             ),
+            ChangeNotifierProvider(
+              create: (_) => ServiceLocator.instance.createUsersProvider(),
+            ),
           ],
           child: GlobalLoaderOverlay(
             overlayColor: Colors.transparent,

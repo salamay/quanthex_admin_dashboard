@@ -7,6 +7,8 @@ import 'package:quanthex_admin/data/domain/models/mining_payment_model.dart';
 import 'package:quanthex_admin/data/domain/models/staking_payment_model.dart';
 import 'package:quanthex_admin/data/domain/models/upline_payment_model.dart';
 import 'package:quanthex_admin/data/domain/models/daily_roi_eligible_model.dart';
+import 'package:quanthex_admin/data/domain/models/user_model.dart';
+import 'package:quanthex_admin/presentation/pages/users/user_subscriptions_page.dart';
 import 'package:quanthex_admin/presentation/pages/splash_page.dart';
 import 'package:quanthex_admin/presentation/pages/auth/sign_in_page.dart';
 import 'package:quanthex_admin/presentation/pages/wallets/import_wallet_page.dart';
@@ -17,6 +19,7 @@ import 'package:quanthex_admin/presentation/pages/mining/mining_transaction_deta
 import 'package:quanthex_admin/presentation/pages/staking/staking_detail_page.dart';
 import 'package:quanthex_admin/presentation/pages/staking/staking_transaction_detail_page.dart';
 import 'package:quanthex_admin/presentation/pages/send/send_token_view.dart';
+import 'package:quanthex_admin/presentation/pages/users/user_detail_page.dart';
 import 'package:quanthex_admin/presentation/pages/staking/upline_payment_detail_page.dart';
 import 'package:quanthex_admin/presentation/providers/auth_provider.dart';
 
@@ -35,6 +38,8 @@ class AppRoutes {
   static const String miningPaymentDetail = '/mining-payment-detail';
   static const String stakingPaymentDetail = '/staking-payment-detail';
   static const String miningPayments = '/mining-payments';
+  static const String userDetail = '/user-detail';
+  static const String userSubscriptions = '/user-subscriptions';
 
   /// Routes that don't require an initialized session.
   static const List<String> publicRoutes = [splash, signIn, importWallet];
@@ -174,6 +179,22 @@ class AppRouter {
             return StakingTransactionDetailPage(payment: payment);
           },
         ),
+        GoRoute(
+          path: AppRoutes.userDetail,
+          name: 'userDetail',
+          builder: (context, state) {
+            final user = state.extra as UserModel;
+            return UserDetailPage(user: user);
+          },
+        ),
+        GoRoute(
+          path: AppRoutes.userSubscriptions,
+          name: 'userSubscriptions',
+          builder: (context, state) {
+            final user = state.extra as UserModel;
+            return UserSubscriptionsPage(user: user);
+          },
+        ),
       ],
     );
     return _router!;
@@ -187,6 +208,8 @@ class AppRouter {
         path == AppRoutes.uplinePaymentDetail ||
         path == AppRoutes.miningPaymentDetail ||
         path == AppRoutes.stakingPaymentDetail ||
-        path == AppRoutes.miningPayments;
+        path == AppRoutes.miningPayments ||
+        path == AppRoutes.userDetail ||
+        path == AppRoutes.userSubscriptions;
   }
 }

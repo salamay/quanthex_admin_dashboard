@@ -72,6 +72,8 @@ class MiningDetailPage extends StatelessWidget {
     final displayIndirect = canConvert ? earnings.indirectEarning / dogePrice : earnings.indirectEarning;
     final displayTotal = canConvert ? earnings.totalEarning / dogePrice : earnings.totalEarning;
     final displaySymbol = canConvert ? 'DOGE' : rewardSymbol;
+    // Remaining = total earned (in DOGE) minus total already paid (already in DOGE)
+    final displayRemaining = (displayTotal - record.paymentStatus.totalAmountPaid).clamp(0.0, double.infinity);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -141,6 +143,7 @@ class MiningDetailPage extends StatelessWidget {
               indirectEarning: displayIndirect,
               totalEarning: displayTotal,
               rewardSymbol: displaySymbol,
+              totalPaid: record.paymentStatus.totalAmountPaid,
             ),
             const SizedBox(height: 16),
 
@@ -260,7 +263,7 @@ class MiningDetailPage extends StatelessWidget {
                     Icon(Icons.payment, size: 20),
                     const SizedBox(width: 8),
                     Text(
-                      _getPayButtonText(record, displayTotal, displaySymbol),
+                      _getPayButtonText(record, displayRemaining, displaySymbol),
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,

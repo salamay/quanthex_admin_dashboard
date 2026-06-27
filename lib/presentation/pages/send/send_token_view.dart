@@ -69,7 +69,9 @@ class _SendTokenViewState extends State<SendTokenView> {
           final dogeAmount = (dogePrice != null && dogePrice > 0)
               ? totalEarning / dogePrice
               : totalEarning;
-          _amountController.text = dogeAmount.toStringAsFixed(4);
+          // Subtract what has already been paid (totalAmountPaid is already in DOGE)
+          final remaining = dogeAmount - record.paymentStatus.totalAmountPaid;
+          _amountController.text = (remaining > 0 ? remaining : 0).toStringAsFixed(4);
         }
       }
     }

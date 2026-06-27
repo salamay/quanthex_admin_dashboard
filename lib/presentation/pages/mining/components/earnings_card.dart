@@ -6,6 +6,7 @@ class EarningsCard extends StatelessWidget {
   final double indirectEarning;
   final double totalEarning;
   final String rewardSymbol;
+  final double totalPaid;
 
   const EarningsCard({
     super.key,
@@ -13,6 +14,7 @@ class EarningsCard extends StatelessWidget {
     required this.indirectEarning,
     required this.totalEarning,
     required this.rewardSymbol,
+    this.totalPaid = 0,
   });
 
   @override
@@ -92,6 +94,35 @@ class EarningsCard extends StatelessWidget {
               ),
             ],
           ),
+          const SizedBox(height: 12),
+          const Divider(color: AppColors.divider, height: 1),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: EarningColumn(
+                  label: 'Total Paid',
+                  value: '${totalPaid.toStringAsFixed(4)}$symbol',
+                  icon: Icons.check_circle_outline,
+                  valueColor: AppColors.statusActive,
+                ),
+              ),
+              Container(width: 1, height: 40, color: AppColors.divider),
+              Expanded(
+                child: Builder(
+                  builder: (context) {
+                    final remaining = totalEarning - totalPaid;
+                    return EarningColumn(
+                      label: 'Remaining',
+                      value: '${remaining.toStringAsFixed(4)}$symbol',
+                      icon: Icons.schedule,
+                      valueColor: remaining > 0 ? AppColors.statusPending : AppColors.statusActive,
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -102,12 +133,14 @@ class EarningColumn extends StatelessWidget {
   final String label;
   final String value;
   final IconData icon;
+  final Color? valueColor;
 
   const EarningColumn({
     super.key,
     required this.label,
     required this.value,
     required this.icon,
+    this.valueColor,
   });
 
   @override
@@ -118,10 +151,10 @@ class EarningColumn extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           value,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
+            color: valueColor ?? AppColors.textPrimary,
           ),
           textAlign: TextAlign.center,
           overflow: TextOverflow.ellipsis,
