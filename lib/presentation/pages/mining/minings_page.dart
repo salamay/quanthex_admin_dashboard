@@ -100,7 +100,7 @@ class _MiningsViewState extends State<MiningsView> {
                           }
                           return MiningListItem(
                             record: provider.minings[index],
-                            index: index,
+                            index: provider.total - index - 1,
                           );
                         },
                       ),
