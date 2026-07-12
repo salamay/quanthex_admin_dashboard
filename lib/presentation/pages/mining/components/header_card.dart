@@ -6,6 +6,7 @@ class HeaderCard extends StatelessWidget {
   final String status;
   final String email;
   final String referralCode;
+  final String? referrerEmail;
 
   const HeaderCard({
     super.key,
@@ -13,6 +14,7 @@ class HeaderCard extends StatelessWidget {
     required this.status,
     required this.email,
     required this.referralCode,
+    this.referrerEmail,
   });
 
   Color _statusColor() {
@@ -108,6 +110,22 @@ class HeaderCard extends StatelessWidget {
               ),
             ],
           ),
+          if (referrerEmail != null && referrerEmail!.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                const Icon(Icons.person_outline, size: 14, color: Colors.white70),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    'Referred by: $referrerEmail',
+                    style: const TextStyle(fontSize: 13, color: Colors.white70),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );

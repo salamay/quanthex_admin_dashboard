@@ -210,7 +210,7 @@ class _UsersViewState extends State<UsersView> {
                     final user = provider.users[index];
                     return _UserListItem(
                       user: user,
-                      index: index + 1,
+                      index: provider.total - index,
                       formattedDate: _formatDate(user.userCreatedAt),
                       onTap: () {
                         context.push(AppRoutes.userDetail, extra: user);

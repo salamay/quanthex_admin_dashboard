@@ -4,6 +4,7 @@ import 'package:quanthex_admin/core/network/api_constants.dart';
 
 import '../domain/models/mining_record_model.dart';
 import '../domain/models/mining_payment_model.dart';
+import '../domain/models/mining_referral_model.dart';
 import '../domain/models/paginated_response.dart';
 
 
@@ -126,7 +127,6 @@ class MiningRemoteDataSource {
           .toList();
 
       final packages = packageNamesList.map((e) => e.toString()).toList();
-
       return PaginatedResponse(data: minings, total: total, packageNames: packages);
     } catch (e) {
       log('Error fetching minings: $e');
@@ -177,6 +177,71 @@ class MiningRemoteDataSource {
       return PaginatedResponse(data: payments, total: total);
     } catch (e) {
       log('Error fetching mining payments: $e');
+      rethrow;
+    }
+  }
+
+  /// Fetch direct referrals for a mining (by uid + subscriptionId).
+  Future<List<MiningReferralModel>> getDirectReferrals({
+    required String uid,
+    required String subscriptionId,
+  }) async {
+    try {
+      final queryParams = <String, dynamic>{
+        'uid': uid,
+        'subscriptionId': subscriptionId,
+      };
+
+      final response = await _apiClient.get(
+        ApiConstants.adminDirectReferrals,
+        queryParams: queryParams,
+      );
+
+      if (response == null || response.statusCode != 200) {
+        throw Exception('Failed to fetch direct referrals: ${response?.statusCode}');
+      }
+
+      final responseData = response.data;
+      // The interceptor unwraps data.data → the array itself
+      final List<dynamic> dataList = responseData is List ? responseData : (responseData['data'] ?? responseData ?? []);
+
+      return dataList
+          .map((item) => MiningReferralModel.fromJson(item as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      log('Error fetching direct referrals: $e');
+      rethrow;
+    }
+  }
+
+  /// Fetch indirect referrals for a mining (by uid + subscriptionId).
+  Future<List<MiningReferralModel>> getIndirectReferrals({
+    required String uid,
+    required String subscriptionId,
+  }) async {
+    try {
+      final queryParams = <String, dynamic>{
+        'uid': uid,
+        'subscriptionId': subscriptionId,
+      };
+
+      final response = await _apiClient.get(
+        ApiConstants.adminIndirectReferrals,
+        queryParams: queryParams,
+      );
+
+      if (response == null || response.statusCode != 200) {
+        throw Exception('Failed to fetch indirect referrals: ${response?.statusCode}');
+      }
+
+      final responseData = response.data;
+      final List<dynamic> dataList = responseData is List ? responseData : (responseData['data'] ?? responseData ?? []);
+
+      return dataList
+          .map((item) => MiningReferralModel.fromJson(item as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      log('Error fetching indirect referrals: $e');
       rethrow;
     }
   }

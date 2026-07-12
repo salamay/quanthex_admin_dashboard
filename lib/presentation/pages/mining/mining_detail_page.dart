@@ -108,6 +108,7 @@ class MiningDetailPage extends StatelessWidget {
               status: subscription?.subStatus ?? 'Unknown',
               email: mining?.email ?? 'N/A',
               referralCode: record.referralCode ?? 'N/A',
+              referrerEmail: record.referrerEmail,
             ),
             const SizedBox(height: 16),
 
@@ -151,6 +152,15 @@ class MiningDetailPage extends StatelessWidget {
               directCount: record.directReferralCount,
               indirectCount: record.indirectReferralCount,
               totalCount: record.totalReferralCount,
+              onTap: () {
+                context.push(AppRoutes.miningReferrals, extra: {
+                  'uid': mining?.uid ?? '',
+                  'subscriptionId': subscription?.subId ?? '',
+                  'packageName': subscription?.subPackageName ?? 'Mining',
+                  'directCount': record.directReferralCount,
+                  'indirectCount': record.indirectReferralCount,
+                });
+              },
             ),
             const SizedBox(height: 16),
 

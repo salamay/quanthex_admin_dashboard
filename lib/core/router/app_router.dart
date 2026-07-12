@@ -9,6 +9,7 @@ import 'package:quanthex_admin/data/domain/models/upline_payment_model.dart';
 import 'package:quanthex_admin/data/domain/models/daily_roi_eligible_model.dart';
 import 'package:quanthex_admin/data/domain/models/user_model.dart';
 import 'package:quanthex_admin/presentation/pages/users/user_subscriptions_page.dart';
+import 'package:quanthex_admin/presentation/pages/mining/mining_referrals_page.dart';
 import 'package:quanthex_admin/presentation/pages/splash_page.dart';
 import 'package:quanthex_admin/presentation/pages/auth/sign_in_page.dart';
 import 'package:quanthex_admin/presentation/pages/wallets/import_wallet_page.dart';
@@ -40,6 +41,7 @@ class AppRoutes {
   static const String miningPayments = '/mining-payments';
   static const String userDetail = '/user-detail';
   static const String userSubscriptions = '/user-subscriptions';
+  static const String miningReferrals = '/mining-referrals';
 
   /// Routes that don't require an initialized session.
   static const List<String> publicRoutes = [splash, signIn, importWallet];
@@ -195,6 +197,20 @@ class AppRouter {
             return UserSubscriptionsPage(user: user);
           },
         ),
+        GoRoute(
+          path: AppRoutes.miningReferrals,
+          name: 'miningReferrals',
+          builder: (context, state) {
+            final data = state.extra as Map<String, dynamic>;
+            return MiningReferralsPage(
+              uid: data['uid'] as String,
+              subscriptionId: data['subscriptionId'] as String,
+              packageName: data['packageName'] as String,
+              directCount: data['directCount'] as int,
+              indirectCount: data['indirectCount'] as int,
+            );
+          },
+        ),
       ],
     );
     return _router!;
@@ -210,6 +226,7 @@ class AppRouter {
         path == AppRoutes.stakingPaymentDetail ||
         path == AppRoutes.miningPayments ||
         path == AppRoutes.userDetail ||
-        path == AppRoutes.userSubscriptions;
+        path == AppRoutes.userSubscriptions ||
+        path == AppRoutes.miningReferrals;
   }
 }

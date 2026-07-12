@@ -1,6 +1,7 @@
 import 'package:quanthex_admin/data/datasources/mining_remote_datasource.dart';
 import '../domain/models/mining_record_model.dart';
 import '../domain/models/mining_payment_model.dart';
+import '../domain/models/mining_referral_model.dart';
 import '../domain/models/paginated_response.dart';
 
 class MiningRepository {
@@ -43,6 +44,26 @@ class MiningRepository {
       startDate: startDate,
       endDate: endDate,
       minId: minId,
+    );
+  }
+
+  Future<List<MiningReferralModel>> getDirectReferrals({
+    required String uid,
+    required String subscriptionId,
+  }) {
+    return _remoteDataSource.getDirectReferrals(
+      uid: uid,
+      subscriptionId: subscriptionId,
+    );
+  }
+
+  Future<List<MiningReferralModel>> getIndirectReferrals({
+    required String uid,
+    required String subscriptionId,
+  }) {
+    return _remoteDataSource.getIndirectReferrals(
+      uid: uid,
+      subscriptionId: subscriptionId,
     );
   }
 }

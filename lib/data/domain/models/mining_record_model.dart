@@ -7,6 +7,7 @@ class MiningRecordModel {
   final MiningInfoModel? mining;
   final SubscriptionModel? subscription;
   final String? referralCode;
+  final String? referrerEmail;
   final int directReferralCount;
   final int indirectReferralCount;
   final EarningModel earnings;
@@ -16,6 +17,7 @@ class MiningRecordModel {
     this.mining,
     this.subscription,
     this.referralCode,
+    this.referrerEmail,
     this.directReferralCount = 0,
     this.indirectReferralCount = 0,
     required this.earnings,
@@ -36,6 +38,7 @@ class MiningRecordModel {
           ? SubscriptionModel.fromJson(json['subscription'] as Map<String, dynamic>)
           : null,
       referralCode: json['referral_code']?.toString(),
+      referrerEmail: json['referrer_email']?.toString(),
       directReferralCount: (json['direct_referral_count'] as num?)?.toInt() ?? 0,
       indirectReferralCount: (json['indirect_referral_count'] as num?)?.toInt() ?? 0,
       earnings: json['earnings'] != null
