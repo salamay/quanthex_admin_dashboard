@@ -37,7 +37,7 @@ class CompletedHashUserModel {
       profileCreatedAt: json['profile_created_at']?.toString(),
       profileUpdatedAt: json['profile_updated_at']?.toString(),
       packageName: json['sub_package_name']?.toString(),
-      directReferralCount: (json['direct_referral_count'] as num?)?.toInt() ?? 0,
+      directReferralCount: int.parse(json['direct_referral_count']??")"),
     );
   }
 
