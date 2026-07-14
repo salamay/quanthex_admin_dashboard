@@ -2,6 +2,7 @@ import 'package:quanthex_admin/data/datasources/user_remote_datasource.dart';
 import 'package:quanthex_admin/data/domain/models/user_model.dart';
 import 'package:quanthex_admin/data/domain/models/user_referral_model.dart';
 import 'package:quanthex_admin/data/domain/models/user_subscription_model.dart';
+import 'package:quanthex_admin/data/domain/models/completed_hash_user_model.dart';
 import 'package:quanthex_admin/data/domain/models/paginated_response.dart';
 
 class UserRepository {
@@ -40,6 +41,18 @@ class UserRepository {
   }) {
     return _remoteDataSource.getUserSubscriptions(
       uid: uid,
+      offset: offset,
+      limit: limit,
+    );
+  }
+
+  Future<PaginatedResponse<CompletedHashUserModel>> getCompletedHashUsers({
+    required int minReferrals,
+    required int offset,
+    required int limit,
+  }) {
+    return _remoteDataSource.getCompletedHashUsers(
+      minReferrals: minReferrals,
       offset: offset,
       limit: limit,
     );

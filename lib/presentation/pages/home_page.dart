@@ -14,8 +14,9 @@ import 'package:quanthex_admin/presentation/pages/mining/mining_transactions_vie
 import 'package:quanthex_admin/presentation/pages/staking/staking_transactions_view.dart';
 import 'package:quanthex_admin/presentation/pages/staking/daily_roi_payments_view.dart';
 import 'package:quanthex_admin/presentation/pages/users/users_view.dart';
+import 'package:quanthex_admin/presentation/pages/users/completed_hash_users_page.dart';
 
-enum DrawerItem { users, walletOverview, minings, stakings, stakingSettings, uplinePayments, dailyRoiPayments, miningTransactions, stakingTransactions }
+enum DrawerItem { users, completedHash, walletOverview, minings, stakings, stakingSettings, uplinePayments, dailyRoiPayments, miningTransactions, stakingTransactions }
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -32,6 +33,8 @@ class _HomePageState extends State<HomePage> {
     switch (_selectedItem) {
       case DrawerItem.users:
         return 'All Users';
+      case DrawerItem.completedHash:
+        return 'Completed Hash';
       case DrawerItem.walletOverview:
         return 'Wallet Overview';
       case DrawerItem.minings:
@@ -204,6 +207,11 @@ class _HomePageState extends State<HomePage> {
               item: DrawerItem.users,
             ),
             _buildNavItem(
+              icon: Icons.verified_rounded,
+              label: 'Completed Hash',
+              item: DrawerItem.completedHash,
+            ),
+            _buildNavItem(
               icon: Icons.account_balance_wallet_outlined,
               label: 'Wallet Overview',
               item: DrawerItem.walletOverview,
@@ -321,6 +329,11 @@ class _HomePageState extends State<HomePage> {
               icon: Icons.people_rounded,
               label: 'Users',
               item: DrawerItem.users,
+            ),
+            _buildDrawerTile(
+              icon: Icons.verified_rounded,
+              label: 'Completed Hash',
+              item: DrawerItem.completedHash,
             ),
             _buildDrawerTile(
               icon: Icons.account_balance_wallet_outlined,
@@ -487,6 +500,8 @@ class _HomePageState extends State<HomePage> {
     switch (_selectedItem) {
       case DrawerItem.users:
         return const UsersView();
+      case DrawerItem.completedHash:
+        return const CompletedHashUsersPage();
       case DrawerItem.walletOverview:
         return const HomeView();
       case DrawerItem.minings:

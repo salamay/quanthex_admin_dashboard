@@ -4,6 +4,7 @@ import 'package:quanthex_admin/core/network/api_constants.dart';
 import 'package:quanthex_admin/data/domain/models/user_model.dart';
 import 'package:quanthex_admin/data/domain/models/user_referral_model.dart';
 import 'package:quanthex_admin/data/domain/models/user_subscription_model.dart';
+import 'package:quanthex_admin/data/domain/models/completed_hash_user_model.dart';
 import 'package:quanthex_admin/data/domain/models/paginated_response.dart';
 
 class UserRemoteDataSource {
@@ -117,6 +118,42 @@ class UserRemoteDataSource {
       return PaginatedResponse(data: subscriptions, total: total);
     } catch (e) {
       log('Error fetching user subscriptions: $e');
+      rethrow;
+    }
+  }
+
+  Future<PaginatedResponse<CompletedHashUserModel>> getCompletedHashUsers({
+    required int minReferrals,
+    required int offset,
+    required int limit,
+  }) async {
+    try {
+      final queryParams = <String, dynamic>{
+        'minReferrals': minReferrals.toString(),
+        'offset': offset.toString(),
+        'limit': limit.toString(),
+      };
+
+      final response = await _apiClient.get(
+        ApiConstants.completedHashUsers,
+        queryParams: queryParams,
+      );
+
+      if (response == null || response.statusCode != 200) {
+        throw Exception('Failed to fetch completed hash users: ${response?.statusCode}');
+      }
+
+      final responseData = response.data;
+      final List<dynamic> dataList = responseData['data'] ?? [];
+      final int total = responseData['total'] ?? 0;
+
+      final users = dataList
+          .map((item) => CompletedHashUserModel.fromJson(item as Map<String, dynamic>))
+          .toList();
+
+      return PaginatedResponse(data: users, total: total);
+    } catch (e) {
+      log('Error fetching completed hash users: $e');
       rethrow;
     }
   }
