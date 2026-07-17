@@ -64,7 +64,6 @@ class MiningDetailPage extends StatelessWidget {
     final subscription = record.subscription;
     final earnings = record.earnings;
     final rewardSymbol = subscription?.subRewardAssetSymbol ?? '';
-
     // Convert USDT earnings to DOGE using market price
     final dogePrice = context.read<BalanceController>().priceQuotes['DOGE'];
     final canConvert = dogePrice != null && dogePrice > 0;

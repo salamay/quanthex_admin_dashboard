@@ -85,6 +85,7 @@ class _MiningReferralsPageState extends State<MiningReferralsPage>
         uid: widget.uid,
         subscriptionId: widget.subscriptionId,
       );
+
     } catch (e) {
       log('Error fetching indirect referrals: $e');
       _hasIndirectError = true;
@@ -170,15 +171,152 @@ class _MiningReferralsPageState extends State<MiningReferralsPage>
             onRetry: _fetchDirectReferrals,
             emptyMessage: 'No direct referrals',
           ),
-          _buildReferralList(
-            referrals: _indirectReferrals,
-            isLoading: _isLoadingIndirect,
-            hasError: _hasIndirectError,
-            onRetry: _fetchIndirectReferrals,
-            emptyMessage: 'No indirect referrals',
-          ),
+          _buildGroupedIndirectList(),
         ],
       ),
+    );
+  }
+
+  Widget _buildGroupedIndirectList() {
+    if (_isLoadingIndirect) {
+      return const Center(
+        child: CircularProgressIndicator(color: AppColors.primary),
+      );
+    }
+
+    if (_hasIndirectError) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.error_outline, size: 48, color: AppColors.error),
+            const SizedBox(height: 12),
+            const Text(
+              'Failed to load referrals',
+              style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: 12),
+            TextButton(onPressed: _fetchIndirectReferrals, child: const Text('Retry')),
+          ],
+        ),
+      );
+    }
+
+    if (_indirectReferrals.isEmpty) {
+      return const Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.people_outline, size: 48, color: AppColors.textTertiary),
+            SizedBox(height: 12),
+            Text(
+              'No indirect referrals',
+              style: TextStyle(fontSize: 14, color: AppColors.textTertiary),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Group by level relative to the subscription being viewed
+    // Level 1 = direct (skip), level 2+ = indirect
+    final Map<int, List<MiningReferralModel>> grouped = {};
+    for (final ref in _indirectReferrals) {
+      final level = ref.levelFor(widget.subscriptionId);
+      if (level <= 1) continue;
+      grouped.putIfAbsent(level, () => []).add(ref);
+    }
+    final sortedLevels = grouped.keys.toList()..sort();
+
+    if (sortedLevels.isEmpty) {
+      return const Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.people_outline, size: 48, color: AppColors.textTertiary),
+            SizedBox(height: 12),
+            Text(
+              'No indirect referrals',
+              style: TextStyle(fontSize: 14, color: AppColors.textTertiary),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: sortedLevels.length,
+      itemBuilder: (context, sectionIndex) {
+        final level = sortedLevels[sectionIndex];
+        final refs = grouped[level]!;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (sectionIndex > 0) const SizedBox(height: 12),
+            // Level header
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: AppColors.primaryFaint,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppColors.primarySurface),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Icon(
+                      level == 2
+                          ? Icons.person_rounded
+                          : level == 3
+                              ? Icons.people_rounded
+                              : Icons.groups_rounded,
+                      size: 16,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    'Level $level',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      '${refs.length}',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            ...refs.asMap().entries.map((entry) {
+              return _buildReferralCard(entry.value, entry.key + 1);
+            }),
+          ],
+        );
+      },
     );
   }
 
@@ -314,24 +452,28 @@ class _MiningReferralsPageState extends State<MiningReferralsPage>
                       ),
                       const SizedBox(width: 8),
                     ],
-                    if (referral.depth != null) ...[
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: AppColors.info.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          'Depth ${referral.depth}',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.info,
+                    Builder(builder: (_) {
+                      final level = referral.levelFor(widget.subscriptionId);
+                      if (level <= 0) return const SizedBox.shrink();
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: AppColors.info.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            'Level $level',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.info,
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                    ],
+                      );
+                    }),
                     Icon(Icons.calendar_today, size: 10, color: AppColors.textTertiary),
                     const SizedBox(width: 3),
                     Text(

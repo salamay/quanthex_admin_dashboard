@@ -229,7 +229,7 @@ class MiningRemoteDataSource {
         ApiConstants.adminIndirectReferrals,
         queryParams: queryParams,
       );
-
+      print(response?.data);
       if (response == null || response.statusCode != 200) {
         throw Exception('Failed to fetch indirect referrals: ${response?.statusCode}');
       }
