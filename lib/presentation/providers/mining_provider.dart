@@ -33,6 +33,9 @@ class MiningProvider extends ChangeNotifier {
   String? _selectedPackageName;
   String? get selectedPackageName => _selectedPackageName;
 
+  String? _emailFilter;
+  String? get emailFilter => _emailFilter;
+
   DateTime? _startDate;
   DateTime? get startDate => _startDate;
 
@@ -43,12 +46,17 @@ class MiningProvider extends ChangeNotifier {
   List<String> get packageNames => _packageNames;
 
   bool get hasActiveFilters =>
-      _selectedPackageName != null || _startDate != null || _endDate != null;
+      _selectedPackageName != null || _startDate != null || _endDate != null || _emailFilter != null;
 
   static const int _pageSize = 20;
 
   void setPackageNameFilter(String? packageName) {
     _selectedPackageName = packageName;
+    notifyListeners();
+  }
+
+  void setEmailFilter(String? email) {
+    _emailFilter = (email != null && email.isEmpty) ? null : email;
     notifyListeners();
   }
 
@@ -60,6 +68,7 @@ class MiningProvider extends ChangeNotifier {
 
   void clearFilters() {
     _selectedPackageName = null;
+    _emailFilter = null;
     _startDate = null;
     _endDate = null;
     notifyListeners();
@@ -98,6 +107,7 @@ class MiningProvider extends ChangeNotifier {
         packageName: _selectedPackageName,
         startDate: _startDateMillis,
         endDate: _endDateMillis,
+        email: _emailFilter,
       );
       _minings.clear();
       _minings.addAll(response.data);
@@ -130,6 +140,7 @@ class MiningProvider extends ChangeNotifier {
         packageName: _selectedPackageName,
         startDate: _startDateMillis,
         endDate: _endDateMillis,
+        email: _emailFilter,
       );
       _minings.addAll(response.data);
       _total = response.total;

@@ -15,6 +15,7 @@ class MiningRepository {
     String? packageName,
     int? startDate,
     int? endDate,
+    String? email,
   }) {
     return _remoteDataSource.getAllMinings(
       offset: offset,
@@ -22,6 +23,7 @@ class MiningRepository {
       packageName: packageName,
       startDate: startDate,
       endDate: endDate,
+      email: email,
     );
   }
 

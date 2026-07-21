@@ -91,6 +91,7 @@ class MiningRemoteDataSource {
     String? packageName,
     int? startDate,
     int? endDate,
+    String? email,
   }) async {
     try {
       final queryParams = <String, dynamic>{
@@ -106,6 +107,9 @@ class MiningRemoteDataSource {
       }
       if (endDate != null) {
         queryParams['endDate'] = endDate.toString();
+      }
+      if (email != null && email.isNotEmpty) {
+        queryParams['email'] = email;
       }
 
       final response = await _apiClient.get(

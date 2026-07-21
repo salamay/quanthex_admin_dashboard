@@ -1,5 +1,15 @@
 {
   "projects": {
     "default": "quanthex-admin"
-  }
+  },
+  "targets": {
+    "quanthex-admin": {
+      "hosting": {
+        "xadmin": [
+          "quanthex-admin"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }
