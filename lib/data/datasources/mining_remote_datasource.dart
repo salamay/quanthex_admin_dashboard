@@ -131,8 +131,6 @@ class MiningRemoteDataSource {
           .toList();
 
       final packages = packageNamesList.map((e) => e.toString()).toList();
-      print("dsfsdf:${total}");
-      print("dsfsdf:${packages}");
       return PaginatedResponse(data: minings, total: total, packageNames: packages);
     } catch (e) {
       log('Error fetching minings: $e');
