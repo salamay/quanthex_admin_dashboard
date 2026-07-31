@@ -2,6 +2,7 @@ class PackageConstants {
   PackageConstants._();
 
   static const String starter = 'Starter Mining Package';
+  static const String boost = 'Boost Package';
   static const String growth = 'Growth Package';
   static const String advance = 'Advance Package';
   static const String pro = 'Pro Package';
@@ -9,6 +10,7 @@ class PackageConstants {
 
   static const List<String> allPackages = [
     starter,
+    boost,
     growth,
     advance,
     pro,

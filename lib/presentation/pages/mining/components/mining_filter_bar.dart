@@ -113,6 +113,7 @@ class _MiningFilterBarState extends State<MiningFilterBar> {
               // Chip filters row
               Row(
                 children: [
+
                   // Package filter
                   MiningFilterChip(
                     label: 'Package',
