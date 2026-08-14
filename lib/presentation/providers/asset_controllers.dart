@@ -116,7 +116,7 @@ class AssetController extends ChangeNotifier{
               logger("Chain not supported", runtimeType.toString());
             }
             print(network.chainSymbol);
-            SupportedCoin nativeToken = SupportedCoin(name: network.chainName, symbol: network.chainCurrency.toUpperCase(), image: network.imageUrl, walletAddress: walletAddress, privateKey: privateKey, networkModel: network, coinType: CoinType.NATIVE_TOKEN, decimal: 18, contractAddress: "",marketCap: double.infinity);
+            SupportedCoin nativeToken = SupportedCoin(name: network.chainName, symbol: network.chainCurrency.toUpperCase(), image: network.imageUrl, walletAddress: walletAddress, privateKey: privateKey, networkModel: network, coinType: CoinType.NATIVE_TOKEN, decimal: 18, contractAddress: "",marketCap: 0);
             coins.insert(0, nativeToken);
           }).toList(),
         );

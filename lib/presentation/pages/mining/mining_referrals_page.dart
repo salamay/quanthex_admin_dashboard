@@ -6,6 +6,28 @@ import 'package:quanthex_admin/core/theme/app_colors.dart';
 import 'package:quanthex_admin/core/di/service_locator.dart';
 import 'package:quanthex_admin/data/domain/models/mining_referral_model.dart';
 
+/// A referral entry placed into a slot, tagged with its type.
+class _SlottedReferral {
+  final MiningReferralModel referral;
+  final bool isDirect;
+
+  _SlottedReferral({required this.referral, required this.isDirect});
+}
+
+/// One of the 3 fixed slots.
+class _Slot {
+  final int level; // 1, 2, 3
+  final int capacity; // 6, 36, 216
+  final List<_SlottedReferral> entries = [];
+
+  _Slot({required this.level, required this.capacity});
+
+  int get filled => entries.length;
+  int get remaining => (capacity - filled).clamp(0, capacity);
+  bool get isFull => filled >= capacity;
+  double get fillPercent => capacity > 0 ? (filled / capacity).clamp(0, 1) : 0;
+}
+
 class MiningReferralsPage extends StatefulWidget {
   final String uid;
   final String subscriptionId;
@@ -26,71 +48,101 @@ class MiningReferralsPage extends StatefulWidget {
   State<MiningReferralsPage> createState() => _MiningReferralsPageState();
 }
 
-class _MiningReferralsPageState extends State<MiningReferralsPage>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-
+class _MiningReferralsPageState extends State<MiningReferralsPage> {
   List<MiningReferralModel> _directReferrals = [];
   List<MiningReferralModel> _indirectReferrals = [];
-  bool _isLoadingDirect = false;
-  bool _isLoadingIndirect = false;
-  bool _hasDirectError = false;
-  bool _hasIndirectError = false;
+  bool _isLoading = false;
+  bool _hasError = false;
+
+  late List<_Slot> _slots;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
-    _fetchDirectReferrals();
-    _fetchIndirectReferrals();
+    _slots = [
+      _Slot(level: 1, capacity: 6),
+      _Slot(level: 2, capacity: 36),
+      _Slot(level: 3, capacity: 216),
+    ];
+    _fetchReferrals();
   }
 
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _fetchDirectReferrals() async {
-    if (_isLoadingDirect) return;
+  Future<void> _fetchReferrals() async {
+    if (_isLoading) return;
     setState(() {
-      _isLoadingDirect = true;
-      _hasDirectError = false;
+      _isLoading = true;
+      _hasError = false;
     });
 
     try {
       final repo = ServiceLocator.instance.miningRepository;
-      _directReferrals = await repo.getDirectReferrals(
-        uid: widget.uid,
-        subscriptionId: widget.subscriptionId,
-      );
+      final results = await Future.wait([
+        repo.getDirectReferrals(
+          uid: widget.uid,
+          subscriptionId: widget.subscriptionId,
+        ),
+        repo.getIndirectReferrals(
+          uid: widget.uid,
+          subscriptionId: widget.subscriptionId,
+        ),
+      ]);
+
+      _directReferrals = results[0];
+      _indirectReferrals = results[1];
+      _distributeIntoSlots();
     } catch (e) {
-      log('Error fetching direct referrals: $e');
-      _hasDirectError = true;
+      log('Error fetching referrals: $e');
+      _hasError = true;
     } finally {
-      if (mounted) setState(() => _isLoadingDirect = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  Future<void> _fetchIndirectReferrals() async {
-    if (_isLoadingIndirect) return;
-    setState(() {
-      _isLoadingIndirect = true;
-      _hasIndirectError = false;
-    });
+  /// Distribute referrals into the 3 fixed slots based on their level.
+  ///
+  /// Level 1 (direct) → naturally Slot 1, overflow to Slot 2 → Slot 3
+  /// Level 2 (indirect) → naturally Slot 2, overflow to Slot 3
+  /// Level 3+ (indirect) → Slot 3
+  ///
+  /// Slot 1 is direct-only (no indirect referrals).
+  void _distributeIntoSlots() {
+    _slots = [
+      _Slot(level: 1, capacity: 6),
+      _Slot(level: 2, capacity: 36),
+      _Slot(level: 3, capacity: 216),
+    ];
 
-    try {
-      final repo = ServiceLocator.instance.miningRepository;
-      _indirectReferrals = await repo.getIndirectReferrals(
-        uid: widget.uid,
-        subscriptionId: widget.subscriptionId,
-      );
+    // Level 1 referrals (direct) → try Slot 1 → 2 → 3
+    for (final ref in _directReferrals) {
+      _placeInSlot(ref, startSlot: 0, isDirect: true);
+    }
 
-    } catch (e) {
-      log('Error fetching indirect referrals: $e');
-      _hasIndirectError = true;
-    } finally {
-      if (mounted) setState(() => _isLoadingIndirect = false);
+    // Group indirect referrals by their level
+    final Map<int, List<MiningReferralModel>> indirectByLevel = {};
+    for (final ref in _indirectReferrals) {
+      final level = ref.levelFor(widget.subscriptionId);
+      final effectiveLevel = level <= 1 ? 2 : level; // safety fallback
+      indirectByLevel.putIfAbsent(effectiveLevel, () => []).add(ref);
+    }
+    final sortedLevels = indirectByLevel.keys.toList()..sort();
+
+    for (final level in sortedLevels) {
+      // Level 2 → start at Slot 2 (index 1), overflow to Slot 3
+      // Level 3+ → start at Slot 3 (index 2)
+      final startIndex = level <= 2 ? 1 : 2;
+      for (final ref in indirectByLevel[level]!) {
+        _placeInSlot(ref, startSlot: startIndex, isDirect: false);
+      }
+    }
+  }
+
+  /// Place a referral into the first available slot starting from [startSlot].
+  void _placeInSlot(MiningReferralModel ref, {required int startSlot, required bool isDirect}) {
+    for (int i = startSlot; i < _slots.length; i++) {
+      if (!_slots[i].isFull) {
+        _slots[i].entries.add(_SlottedReferral(referral: ref, isDirect: isDirect));
+        return;
+      }
     }
   }
 
@@ -121,6 +173,11 @@ class _MiningReferralsPageState extends State<MiningReferralsPage>
 
   @override
   Widget build(BuildContext context) {
+    final totalDirect = _directReferrals.length;
+    final totalIndirect = _indirectReferrals.length;
+    final totalAll = totalDirect + totalIndirect;
+    final totalCapacity = 6 + 36 + 216; // 258
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -140,142 +197,146 @@ class _MiningReferralsPageState extends State<MiningReferralsPage>
         ),
         centerTitle: true,
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(49),
-          child: Column(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(color: AppColors.border, height: 1),
+        ),
+      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+          : _hasError
+              ? Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.error_outline, size: 48, color: AppColors.error),
+                      const SizedBox(height: 12),
+                      const Text('Failed to load referrals',
+                          style: TextStyle(fontSize: 14, color: AppColors.textSecondary)),
+                      const SizedBox(height: 12),
+                      TextButton(onPressed: _fetchReferrals, child: const Text('Retry')),
+                    ],
+                  ),
+                )
+              : ListView(
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    // Summary card
+                    _buildSummaryCard(totalDirect, totalIndirect, totalAll, totalCapacity),
+                    const SizedBox(height: 16),
+                    // Slot sections
+                    for (int i = 0; i < _slots.length; i++) ...[
+                      if (i > 0) const SizedBox(height: 16),
+                      _buildSlotSection(_slots[i]),
+                    ],
+                    const SizedBox(height: 32),
+                  ],
+                ),
+    );
+  }
+
+  Widget _buildSummaryCard(int direct, int indirect, int total, int capacity) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        children: [
+          Row(
             children: [
-              Container(color: AppColors.border, height: 1),
-              TabBar(
-                controller: _tabController,
-                indicatorColor: AppColors.primary,
-                indicatorWeight: 2.5,
-                labelColor: AppColors.primary,
-                unselectedLabelColor: AppColors.textSecondary,
-                labelStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-                unselectedLabelStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-                tabs: [
-                  Tab(text: 'Direct (${_isLoadingDirect ? '...' : _directReferrals.length})'),
-                  Tab(text: 'Indirect (${_isLoadingIndirect ? '...' : _indirectReferrals.length})'),
-                ],
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.primarySurface,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.grid_view_rounded, size: 18, color: AppColors.primary),
+              ),
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Text(
+                  'Referral Slots',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                ),
+              ),
+              Text(
+                '$total / $capacity',
+                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.primary),
               ),
             ],
           ),
-        ),
-      ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          _buildReferralList(
-            referrals: _directReferrals,
-            isLoading: _isLoadingDirect,
-            hasError: _hasDirectError,
-            onRetry: _fetchDirectReferrals,
-            emptyMessage: 'No direct referrals',
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              _buildSummaryChip('Direct', direct, AppColors.success),
+              const SizedBox(width: 8),
+              _buildSummaryChip('Indirect', indirect, AppColors.info),
+              const SizedBox(width: 8),
+              _buildSummaryChip('Empty', (capacity - total).clamp(0, capacity), AppColors.textTertiary),
+            ],
           ),
-          _buildGroupedIndirectList(),
         ],
       ),
     );
   }
 
-  Widget _buildGroupedIndirectList() {
-    if (_isLoadingIndirect) {
-      return const Center(
-        child: CircularProgressIndicator(color: AppColors.primary),
-      );
-    }
-
-    if (_hasIndirectError) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.error_outline, size: 48, color: AppColors.error),
-            const SizedBox(height: 12),
-            const Text(
-              'Failed to load referrals',
-              style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
-            ),
-            const SizedBox(height: 12),
-            TextButton(onPressed: _fetchIndirectReferrals, child: const Text('Retry')),
-          ],
+  Widget _buildSummaryChip(String label, int count, Color color) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(10),
         ),
-      );
-    }
-
-    if (_indirectReferrals.isEmpty) {
-      return const Center(
         child: Column(
-          mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.people_outline, size: 48, color: AppColors.textTertiary),
-            SizedBox(height: 12),
             Text(
-              'No indirect referrals',
-              style: TextStyle(fontSize: 14, color: AppColors.textTertiary),
+              '$count',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: color),
             ),
-          ],
-        ),
-      );
-    }
-
-    // Group by level relative to the subscription being viewed
-    // Level 1 = direct (skip), level 2+ = indirect
-    final Map<int, List<MiningReferralModel>> grouped = {};
-    for (final ref in _indirectReferrals) {
-      final level = ref.levelFor(widget.subscriptionId);
-      if (level <= 1) continue;
-      grouped.putIfAbsent(level, () => []).add(ref);
-    }
-    final sortedLevels = grouped.keys.toList()..sort();
-
-    if (sortedLevels.isEmpty) {
-      return const Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.people_outline, size: 48, color: AppColors.textTertiary),
-            SizedBox(height: 12),
+            const SizedBox(height: 2),
             Text(
-              'No indirect referrals',
-              style: TextStyle(fontSize: 14, color: AppColors.textTertiary),
+              label,
+              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: color),
             ),
           ],
         ),
-      );
-    }
+      ),
+    );
+  }
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: sortedLevels.length,
-      itemBuilder: (context, sectionIndex) {
-        final level = sortedLevels[sectionIndex];
-        final refs = grouped[level]!;
+  Widget _buildSlotSection(_Slot slot) {
+    final directInSlot = slot.entries.where((e) => e.isDirect).length;
+    final indirectInSlot = slot.entries.where((e) => !e.isDirect).length;
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (sectionIndex > 0) const SizedBox(height: 12),
-            // Level header
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              decoration: BoxDecoration(
-                color: AppColors.primaryFaint,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AppColors.primarySurface),
-              ),
-              child: Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Slot header
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: AppColors.primaryFaint,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.primarySurface),
+          ),
+          child: Column(
+            children: [
+              Row(
                 children: [
                   Container(
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.15),
+                      color: AppColors.primary.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Icon(
-                      level == 2
+                      slot.level == 1
                           ? Icons.person_rounded
-                          : level == 3
+                          : slot.level == 2
                               ? Icons.people_rounded
                               : Icons.groups_rounded,
                       size: 16,
@@ -284,101 +345,106 @@ class _MiningReferralsPageState extends State<MiningReferralsPage>
                   ),
                   const SizedBox(width: 10),
                   Text(
-                    'Level $level',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.primary,
-                    ),
+                    'Level ${slot.level}',
+                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.primary),
                   ),
                   const SizedBox(width: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.15),
+                      color: AppColors.primary.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
-                      '${refs.length}',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.primary,
-                      ),
+                      '${slot.filled} / ${slot.capacity}',
+                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.primary),
                     ),
                   ),
+                  const Spacer(),
+                  // Direct/indirect breakdown
+                  if (directInSlot > 0)
+                    _buildMiniChip('D: $directInSlot', AppColors.success),
+                  if (directInSlot > 0 && indirectInSlot > 0)
+                    const SizedBox(width: 4),
+                  if (indirectInSlot > 0)
+                    _buildMiniChip('I: $indirectInSlot', AppColors.info),
                 ],
               ),
+              const SizedBox(height: 10),
+              // Progress bar
+              ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: SizedBox(
+                  height: 6,
+                  child: Stack(
+                    children: [
+                      // Background
+                      Container(
+                        width: double.infinity,
+                        color: AppColors.primary.withValues(alpha: 0.1),
+                      ),
+                      // Filled portion
+                      FractionallySizedBox(
+                        widthFactor: slot.fillPercent,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                AppColors.primary,
+                                slot.isFull ? AppColors.success : AppColors.primary.withValues(alpha: 0.7),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // Referral cards
+        if (slot.entries.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Center(
+              child: Text(
+                'No referrals in this slot',
+                style: TextStyle(fontSize: 13, color: AppColors.textTertiary),
+              ),
             ),
-            const SizedBox(height: 8),
-            ...refs.asMap().entries.map((entry) {
-              return _buildReferralCard(entry.value, entry.key + 1);
-            }),
-          ],
-        );
-      },
+          )
+        else ...[
+          const SizedBox(height: 8),
+          ...slot.entries.asMap().entries.map((entry) {
+            return _buildReferralCard(entry.value, entry.key + 1);
+          }),
+        ],
+      ],
     );
   }
 
-  Widget _buildReferralList({
-    required List<MiningReferralModel> referrals,
-    required bool isLoading,
-    required bool hasError,
-    required VoidCallback onRetry,
-    required String emptyMessage,
-  }) {
-    if (isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(color: AppColors.primary),
-      );
-    }
-
-    if (hasError) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.error_outline, size: 48, color: AppColors.error),
-            const SizedBox(height: 12),
-            const Text(
-              'Failed to load referrals',
-              style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
-            ),
-            const SizedBox(height: 12),
-            TextButton(onPressed: onRetry, child: const Text('Retry')),
-          ],
-        ),
-      );
-    }
-
-    if (referrals.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.people_outline, size: 48, color: AppColors.textTertiary),
-            const SizedBox(height: 12),
-            Text(
-              emptyMessage,
-              style: const TextStyle(fontSize: 14, color: AppColors.textTertiary),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: referrals.length,
-      itemBuilder: (context, index) {
-        return _buildReferralCard(referrals[index], index + 1);
-      },
-    );
-  }
-
-  Widget _buildReferralCard(MiningReferralModel referral, int index) {
+  Widget _buildMiniChip(String label, Color color) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: color),
+      ),
+    );
+  }
+
+  Widget _buildReferralCard(_SlottedReferral slotted, int index) {
+    final referral = slotted.referral;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: AppColors.surface,
@@ -398,11 +464,7 @@ class _MiningReferralsPageState extends State<MiningReferralsPage>
             alignment: Alignment.center,
             child: Text(
               '$index',
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: AppColors.primary,
-              ),
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.primary),
             ),
           ),
           const SizedBox(width: 12),
@@ -413,16 +475,29 @@ class _MiningReferralsPageState extends State<MiningReferralsPage>
               children: [
                 Text(
                   referral.referreeEmail ?? 'Unknown',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
-                  ),
+                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4),
                 Row(
                   children: [
+                    // Direct / Indirect badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: (slotted.isDirect ? AppColors.success : AppColors.info).withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        slotted.isDirect ? 'Direct' : 'Indirect',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: slotted.isDirect ? AppColors.success : AppColors.info,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
                     if (referral.referreeReferralCode != null &&
                         referral.referreeReferralCode!.isNotEmpty) ...[
                       GestureDetector(
@@ -438,11 +513,7 @@ class _MiningReferralsPageState extends State<MiningReferralsPage>
                             children: [
                               Text(
                                 referral.referreeReferralCode!,
-                                style: const TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.primary,
-                                ),
+                                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: AppColors.primary),
                               ),
                               const SizedBox(width: 3),
                               const Icon(Icons.copy, size: 9, color: AppColors.primary),
@@ -450,30 +521,8 @@ class _MiningReferralsPageState extends State<MiningReferralsPage>
                           ),
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 6),
                     ],
-                    Builder(builder: (_) {
-                      final level = referral.levelFor(widget.subscriptionId);
-                      if (level <= 0) return const SizedBox.shrink();
-                      return Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: AppColors.info.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            'Level $level',
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.info,
-                            ),
-                          ),
-                        ),
-                      );
-                    }),
                     Icon(Icons.calendar_today, size: 10, color: AppColors.textTertiary),
                     const SizedBox(width: 3),
                     Text(

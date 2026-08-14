@@ -81,11 +81,11 @@ class _StakingSettingsViewState extends State<StakingSettingsView> {
                 },
               ),
               const SizedBox(height: 16),
-              // Section header for per-plan settings
+              // Section header for packages
               const Padding(
                 padding: EdgeInsets.only(bottom: 12),
                 child: Text(
-                  'Per-Plan Settings',
+                  'Packages',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,

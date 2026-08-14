@@ -13,9 +13,12 @@ class PackageNamePicker extends StatelessWidget {
     this.selected,
     required this.onSelected,
   });
+  //
+  // List<String> get _effectivePackages =>
+  //     packageNames.isNotEmpty ? packageNames : PackageConstants.allPackages;
 
-  List<String> get _effectivePackages =>
-      packageNames.isNotEmpty ? packageNames : PackageConstants.allPackages;
+
+  List<String> get _effectivePackages => PackageConstants.allPackages;
 
   @override
   Widget build(BuildContext context) {

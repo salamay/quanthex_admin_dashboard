@@ -138,7 +138,6 @@ class UserRemoteDataSource {
         ApiConstants.completedHashUsers,
         queryParams: queryParams,
       );
-
       if (response == null || response.statusCode != 200) {
         throw Exception('Failed to fetch completed hash users: ${response?.statusCode}');
       }
@@ -150,7 +149,6 @@ class UserRemoteDataSource {
       final users = dataList
           .map((item) => CompletedHashUserModel.fromJson(item as Map<String, dynamic>))
           .toList();
-
       return PaginatedResponse(data: users, total: total);
     } catch (e) {
       log('Error fetching completed hash users: $e');
